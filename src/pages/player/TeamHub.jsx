@@ -1,0 +1,327 @@
+import React, { useState } from 'react';
+import { Plus, UserPlus, LogOut, Users, Loader2, X, Upload, Shield, Crown } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import toast from 'react-hot-toast';
+
+const mockMembers = [
+  { id: 1, username: 'ShadowStep', role: 'captain', rank: 'Diamond', status: 'online' },
+  { id: 2, username: 'NightBlade', role: 'member', rank: 'Platinum', status: 'online' },
+  { id: 3, username: 'QuantumX', role: 'member', rank: 'Gold', status: 'offline' },
+  { id: 4, username: 'FrostByte', role: 'member', rank: 'Diamond', status: 'online' },
+];
+
+function CreateTeamForm({ onCreated }) {
+  const [form, setForm] = useState({ name: '', logoUrl: '' });
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+
+  const validate = () => {
+    const e = {};
+    if (!form.name.trim() || form.name.length < 3) e.name = 'Nama tim minimal 3 karakter';
+    return e;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const errs = validate();
+    if (Object.keys(errs).length) { setErrors(errs); return; }
+    setLoading(true);
+    await new Promise(r => setTimeout(r, 800));
+    setLoading(false);
+    toast.success(`Tim "${form.name}" berhasil dibuat!`);
+    onCreated({ name: form.name, logoUrl: form.logoUrl });
+  };
+
+  return (
+    <div style={{ maxWidth: 480 }}>
+      <h2 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.25rem', fontWeight: 700, color: '#e2e8f0', marginBottom: '0.5rem' }}>
+        Create Your Team
+      </h2>
+      <p style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+        Start competing by creating your own team. You'll be set as captain.
+      </p>
+
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div>
+          <label className="label">Team Name *</label>
+          <input
+            className={`input-field ${errors.name ? 'error' : ''}`}
+            placeholder="e.g. Void Walkers"
+            value={form.name}
+            onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+            id="team-name-input"
+          />
+          {errors.name && <p style={{ color: '#ff5252', fontSize: '0.75rem', marginTop: 4 }}>{errors.name}</p>}
+        </div>
+
+        <div>
+          <label className="label">Team Logo URL (Optional)</label>
+          <div style={{ position: 'relative' }}>
+            <Upload size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#475569' }} />
+            <input
+              className="input-field"
+              placeholder="https://example.com/logo.png"
+              value={form.logoUrl}
+              onChange={e => setForm(p => ({ ...p, logoUrl: e.target.value }))}
+              style={{ paddingLeft: '2.25rem' }}
+              id="team-logo-input"
+            />
+          </div>
+          <p style={{ fontSize: '0.7rem', color: '#475569', marginTop: 4 }}>Paste a URL to your team logo image</p>
+        </div>
+
+        {/* Logo Preview */}
+        {form.logoUrl && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0.875rem', background: '#0a1628', borderRadius: 8, border: '1px solid #112650' }}>
+            <img src={form.logoUrl} alt="logo preview" style={{ width: 48, height: 48, borderRadius: 8, objectFit: 'cover', border: '1px solid #162f62' }} onError={e => { e.target.style.display = 'none' }} />
+            <div>
+              <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: '#e2e8f0' }}>{form.name || 'Team Name'}</div>
+              <div style={{ fontSize: '0.7rem', color: '#475569' }}>Logo Preview</div>
+            </div>
+          </div>
+        )}
+
+        <button
+          type="submit"
+          className="btn-primary"
+          disabled={loading}
+          style={{ padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+          id="create-team-submit"
+        >
+          {loading ? <><Loader2 size={14} className="animate-spin" /> Creating Team...</> : <><Plus size={14} /> Create Team</>}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+function AddMemberModal({ onClose, onAdd }) {
+  const [username, setUsername] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleAdd = async (e) => {
+    e.preventDefault();
+    if (!username.trim()) { setError('Username tidak boleh kosong'); return; }
+    setLoading(true);
+    await new Promise(r => setTimeout(r, 600));
+    setLoading(false);
+    onAdd({ id: Date.now(), username: username.trim(), role: 'member', rank: 'Unranked', status: 'online' });
+    toast.success(`${username} ditambahkan ke tim!`);
+    onClose();
+  };
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal-content" style={{ width: 420 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.25rem 1.5rem', borderBottom: '1px solid #162f62' }}>
+          <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: '#e2e8f0', fontSize: '1rem' }}>
+            Add Team Member
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', padding: 4 }}>
+            <X size={18} />
+          </button>
+        </div>
+        <form onSubmit={handleAdd} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div>
+            <label className="label">Player Username or ID</label>
+            <input
+              className={`input-field ${error ? 'error' : ''}`}
+              placeholder="@username"
+              value={username}
+              onChange={e => { setUsername(e.target.value); setError(''); }}
+              autoFocus
+              id="add-member-input"
+            />
+            {error && <p style={{ color: '#ff5252', fontSize: '0.75rem', marginTop: 4 }}>{error}</p>}
+          </div>
+          <p style={{ fontSize: '0.75rem', color: '#475569' }}>Player will receive an invitation and must accept to join.</p>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button type="button" className="btn-secondary" onClick={onClose} style={{ flex: 1 }}>Cancel</button>
+            <button type="submit" className="btn-primary" disabled={loading} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              {loading ? <Loader2 size={14} className="animate-spin" /> : <UserPlus size={14} />}
+              {loading ? 'Adding...' : 'Send Invite'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default function TeamHub() {
+  const { user, updateUser } = useAuth();
+  const [hasTeam, setHasTeam] = useState(!!user?.teamName);
+  const [teamName, setTeamName] = useState(user?.teamName || '');
+  const [members, setMembers] = useState(hasTeam ? mockMembers : []);
+  const [showAddMember, setShowAddMember] = useState(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+
+  const handleTeamCreated = ({ name, logoUrl }) => {
+    setHasTeam(true);
+    setTeamName(name);
+    setMembers([{ id: 1, username: user?.username || 'You', role: 'captain', rank: 'Unranked', status: 'online' }]);
+    updateUser({ teamName: name });
+  };
+
+  const handleLeaveTeam = () => {
+    setHasTeam(false);
+    setTeamName('');
+    setMembers([]);
+    updateUser({ teamName: null });
+    setShowLeaveConfirm(false);
+    toast.success('You have left the team.');
+  };
+
+  const handleRemoveMember = (id) => {
+    setMembers(prev => prev.filter(m => m.id !== id));
+    toast.success('Member removed from team.');
+  };
+
+  return (
+    <div style={{ padding: '2rem', minHeight: '100%' }}>
+      <div style={{ marginBottom: '1.75rem' }}>
+        <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.75rem', fontWeight: 700, color: '#e2e8f0', marginBottom: 4 }}>
+          Team Hub
+        </h1>
+        <p style={{ color: '#64748b', fontSize: '0.85rem' }}>Manage your team roster and invite players to compete together.</p>
+      </div>
+
+      {!hasTeam ? (
+        /* No Team — Show Create Form */
+        <div className="card" style={{ padding: '2rem', maxWidth: 600 }}>
+          <CreateTeamForm onCreated={handleTeamCreated} />
+        </div>
+      ) : (
+        /* Has Team — Show Roster */
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '1.25rem', alignItems: 'start' }}>
+          {/* Main Roster Card */}
+          <div className="card" style={{ padding: '1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                  <h2 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.25rem', fontWeight: 700, color: '#f5c518', textTransform: 'uppercase' }}>
+                    {teamName}
+                  </h2>
+                  <span className="badge badge-verified">Verified</span>
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#475569' }}>{members.length} members • NA East</div>
+              </div>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button className="btn-primary" onClick={() => setShowAddMember(true)} style={{ display: 'flex', alignItems: 'center', gap: 6 }} id="add-member-btn">
+                  <UserPlus size={14} />
+                  Add Member
+                </button>
+              </div>
+            </div>
+
+            {/* Roster List */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {members.map(member => (
+                <div key={member.id} style={{
+                  display: 'flex', alignItems: 'center', gap: 12, padding: '0.875rem',
+                  background: '#0a1628', borderRadius: 8, border: '1px solid #112650',
+                  transition: 'border-color 0.15s',
+                }}
+                  className="card-hover"
+                >
+                  {/* Avatar */}
+                  <div style={{
+                    width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+                    background: member.role === 'captain' ? 'rgba(245,197,24,0.1)' : 'rgba(22,47,98,0.8)',
+                    border: `1px solid ${member.role === 'captain' ? 'rgba(245,197,24,0.3)' : '#162f62'}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    {member.role === 'captain' ? <Crown size={18} color="#f5c518" /> : <Users size={16} color="#4fc3f7" />}
+                  </div>
+                  {/* Info */}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontWeight: 700, color: '#e2e8f0', fontFamily: 'Rajdhani, sans-serif', fontSize: '0.9rem' }}>
+                        @{member.username}
+                      </span>
+                      {member.role === 'captain' && (
+                        <span style={{ fontSize: '0.6rem', background: 'rgba(245,197,24,0.15)', color: '#f5c518', border: '1px solid rgba(245,197,24,0.3)', borderRadius: 4, padding: '1px 6px', fontWeight: 700, letterSpacing: '0.06em' }}>
+                          CAPTAIN
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: '0.7rem', color: '#475569', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: member.status === 'online' ? '#69f0ae' : '#475569', display: 'inline-block' }} />
+                      {member.status === 'online' ? 'Online' : 'Offline'}
+                      <span>·</span>
+                      <span>{member.rank}</span>
+                    </div>
+                  </div>
+                  {/* Remove button (not for captain) */}
+                  {member.role !== 'captain' && (
+                    <button
+                      onClick={() => handleRemoveMember(member.id)}
+                      style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', padding: 6, borderRadius: 6, display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}
+                      title="Remove member"
+                      id={`remove-member-${member.id}`}
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Team Actions Panel */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div className="card" style={{ padding: '1.25rem' }}>
+              <h3 style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: '#e2e8f0', fontSize: '0.9rem', marginBottom: '1rem' }}>
+                Team Stats
+              </h3>
+              {[
+                { label: 'Total Wins', value: '142' },
+                { label: 'Win Rate', value: '76%' },
+                { label: 'Rank', value: '#8 NA East' },
+                { label: 'Tournaments', value: '12' },
+              ].map(s => (
+                <div key={s.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid #112650' }}>
+                  <span style={{ fontSize: '0.8rem', color: '#64748b' }}>{s.label}</span>
+                  <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: '#e2e8f0' }}>{s.value}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Danger Zone */}
+            <div className="card" style={{ padding: '1.25rem', border: '1px solid rgba(255,82,82,0.2)' }}>
+              <h3 style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: '#ff5252', fontSize: '0.85rem', marginBottom: '0.75rem', letterSpacing: '0.06em' }}>
+                DANGER ZONE
+              </h3>
+              <p style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '1rem' }}>
+                Leaving the team will remove you from the roster permanently.
+              </p>
+              {!showLeaveConfirm ? (
+                <button className="btn-danger" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={() => setShowLeaveConfirm(true)} id="leave-team-btn">
+                  <LogOut size={14} />
+                  Leave Team
+                </button>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <p style={{ fontSize: '0.75rem', color: '#ff5252', fontWeight: 600 }}>Are you sure?</p>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button className="btn-secondary" onClick={() => setShowLeaveConfirm(false)} style={{ flex: 1, fontSize: '0.75rem' }}>Cancel</button>
+                    <button className="btn-danger" onClick={handleLeaveTeam} style={{ flex: 1, fontSize: '0.75rem' }} id="confirm-leave-btn">Confirm</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Member Modal */}
+      {showAddMember && (
+        <AddMemberModal
+          onClose={() => setShowAddMember(false)}
+          onAdd={(member) => setMembers(prev => [...prev, member])}
+        />
+      )}
+    </div>
+  );
+}
