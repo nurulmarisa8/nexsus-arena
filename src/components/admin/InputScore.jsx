@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { X, Trophy, AlertCircle, CheckCircle2, Swords, Loader2 } from 'lucide-react';
+import { matchesAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
 /**
  * InputScore — Modal untuk input skor match dengan validasi dan auto-determine winner
  * 
  * Props:
- *  match   - object { id, teams: [team1, team2], tournament }
+ *  match   - object { id, teams: [team1, team2], tournament, team1_name, team2_name, tournament_name }
  *  onClose - callback untuk menutup modal
  *  onSubmit- callback(payload) setelah validasi berhasil
  */
@@ -17,6 +18,11 @@ export default function InputScore({ match, onClose, onSubmit }) {
   const [preview, setPreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  const team1Name = match.teams ? match.teams[0] : match.team1_name || 'Team 1';
+  const team2Name = match.teams ? match.teams[1] : match.team2_name || 'Team 2';
+  const matchId = match.id;
+  const tournamentName = match.tournament || match.tournament_name || '';
 
   // ─── Validation Logic ───────────────────────────────────────────────────────
   const validateScores = () => {
@@ -48,8 +54,8 @@ export default function InputScore({ match, onClose, onSubmit }) {
 
   // ─── Auto-determine Winner ───────────────────────────────────────────────
   const determineWinner = (s1, s2) => {
-    if (s1 > s2) return { winner: match.teams[0], loser: match.teams[1], winnerIdx: 0 };
-    if (s2 > s1) return { winner: match.teams[1], loser: match.teams[0], winnerIdx: 1 };
+    if (s1 > s2) return { winner: team1Name, loser: team2Name, winnerIdx: 0 };
+    if (s2 > s1) return { winner: team2Name, loser: team1Name, winnerIdx: 1 };
     return { winner: null, loser: null, winnerIdx: -1 }; // Draw
   };
 
@@ -83,27 +89,29 @@ export default function InputScore({ match, onClose, onSubmit }) {
       const s2 = parseInt(score2, 10);
       const result = determineWinner(s1, s2);
 
-      // Payload untuk API
-      const payload = {
-        matchId: match.id,
+      // Call real API
+      await matchesAPI.submitScore(matchId, {
         score_team1: s1,
         score_team2: s2,
-        winner_team_id: result.winnerIdx === 0 ? match.teamIds?.[0] : result.winnerIdx === 1 ? match.teamIds?.[1] : null,
+      });
+
+      // Payload for parent callback
+      const payload = {
+        matchId: matchId,
+        score_team1: s1,
+        score_team2: s2,
         winner_team_name: result.winner,
         is_draw: result.winnerIdx === -1,
         status: 'finished',
         finished_at: new Date().toISOString(),
       };
 
-      // Simulate API call
-      await new Promise(res => setTimeout(res, 900));
-
       if (onSubmit) await onSubmit(payload);
       setSubmitted(true);
-      toast.success(`Match #${match.id} berhasil diselesaikan!`);
+      toast.success(`Match ${matchId} berhasil diselesaikan!`);
       setTimeout(() => onClose(), 1500);
     } catch (err) {
-      toast.error('Gagal menyimpan skor. Coba lagi.');
+      toast.error(err.response?.data?.detail || 'Gagal menyimpan skor. Coba lagi.');
     } finally {
       setSubmitting(false);
     }
@@ -127,7 +135,7 @@ export default function InputScore({ match, onClose, onSubmit }) {
                 Input Match Score
               </div>
               <div style={{ fontSize: '0.7rem', color: '#64748b' }}>
-                Match {match.id} • {match.tournament}
+                Match {matchId} • {tournamentName}
               </div>
             </div>
           </div>
@@ -158,14 +166,14 @@ export default function InputScore({ match, onClose, onSubmit }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
                 <div style={{ flex: 1, padding: '1rem', background: '#0a1628', borderRadius: 8, border: '1px solid #112650', textAlign: 'center' }}>
                   <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: '1rem', color: '#f5c518', marginBottom: 2 }}>
-                    {match.teams[0]}
+                    {team1Name}
                   </div>
                   <div style={{ fontSize: '0.65rem', color: '#475569' }}>TEAM 1</div>
                 </div>
                 <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 900, fontSize: '1.1rem', color: '#162f62', flexShrink: 0 }}>VS</div>
                 <div style={{ flex: 1, padding: '1rem', background: '#0a1628', borderRadius: 8, border: '1px solid #112650', textAlign: 'center' }}>
                   <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: '1rem', color: '#4fc3f7', marginBottom: 2 }}>
-                    {match.teams[1]}
+                    {team2Name}
                   </div>
                   <div style={{ fontSize: '0.65rem', color: '#475569' }}>TEAM 2</div>
                 </div>
@@ -176,7 +184,7 @@ export default function InputScore({ match, onClose, onSubmit }) {
                 {/* Score Team 1 */}
                 <div style={{ flex: 1 }}>
                   <label className="label" style={{ color: '#f5c518' }}>
-                    Score — {match.teams[0]}
+                    Score — {team1Name}
                   </label>
                   <input
                     id="score-team1"
@@ -202,7 +210,7 @@ export default function InputScore({ match, onClose, onSubmit }) {
                 {/* Score Team 2 */}
                 <div style={{ flex: 1 }}>
                   <label className="label" style={{ color: '#4fc3f7' }}>
-                    Score — {match.teams[1]}
+                    Score — {team2Name}
                   </label>
                   <input
                     id="score-team2"

@@ -16,7 +16,7 @@ export default function LoginPage() {
     setError('');
     try {
       const user = await login(form.email, form.password);
-      toast.success(`Welcome back, ${user.username}!`);
+      toast.success(`Welcome back, ${user.name}!`);
       navigate(user.role === 'admin' ? '/admin/dashboard' : '/player/dashboard');
     } catch (err) {
       setError(err.message); 
@@ -31,7 +31,7 @@ export default function LoginPage() {
         : { email: 'player@nexusarena.gg', password: 'player123' };
       setForm(creds);
       const user = await login(creds.email, creds.password);
-      toast.success(`Welcome, ${user.username}!`);
+      toast.success(`Welcome, ${user.name}!`);
       navigate(user.role === 'admin' ? '/admin/dashboard' : '/player/dashboard');
     } catch (err) {
       setError(err.message);

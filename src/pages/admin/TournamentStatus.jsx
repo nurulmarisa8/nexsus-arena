@@ -1,29 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Plus, Filter, ChevronDown, Edit3, Settings, Users, Gamepad2, ChevronRight, Radio
+  Plus, Filter, ChevronDown, Edit3, Settings, Users, Gamepad2, ChevronRight, Radio, Loader2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-const initialTournaments = [
-  {
-    id: 1, game: 'Apex Legends', name: 'Apex Predator Series: NA Finals',
-    status: 'live', registeredTeams: 20, maxTeams: 20, currentMatch: 'Match 4', prizePool: '$50,000',
-  },
-  {
-    id: 2, game: 'Valorant', name: 'Ignition Cup Qualifiers',
-    status: 'registration_open', registeredTeams: 12, maxTeams: 32, currentMatch: null, prizePool: '$15,000',
-  },
-  {
-    id: 3, game: 'League of Legends', name: 'Nexus Championship Series',
-    status: 'upcoming', registeredTeams: 0, maxTeams: 16, currentMatch: null, prizePool: '$30,000',
-  },
-];
-
-const gameTitles = [
-  { name: 'Apex Legends', genre: 'Battle Royale • Squads', icon: '🎯' },
-  { name: 'Valorant', genre: 'Tac Shooter • 5v5', icon: '🔫' },
-  { name: 'League of Legends', genre: 'MOBA • 5v5', icon: '⚔️' },
-];
+import { tournamentsAPI, gamesAPI } from '../../services/api';
 
 const statusLabels = {
   live: { label: 'LIVE', cls: 'badge-live', dot: true },
@@ -35,26 +15,97 @@ const statusLabels = {
 const statusOptions = ['live', 'registration_open', 'upcoming', 'finished'];
 
 export default function TournamentStatus() {
-  const [tournaments, setTournaments] = useState(initialTournaments);
+  const [tournaments, setTournaments] = useState([]);
+  const [gameTitles, setGameTitles] = useState([]);
   const [showNewForm, setShowNewForm] = useState(false);
-  const [newT, setNewT] = useState({ name: '', game: 'Apex Legends', maxTeams: 16, prizePool: '' });
+  const [newT, setNewT] = useState({ name: '', game: '', maxTeams: 16, prizePool: '' });
+  const [loadingTournaments, setLoadingTournaments] = useState(true);
+  const [loadingGames, setLoadingGames] = useState(true);
 
-  const handleStatusChange = (id, status) => {
-    setTournaments(prev => prev.map(t => t.id === id ? { ...t, status } : t));
-    toast.success('Tournament status updated');
+  useEffect(() => {
+    const fetchTournaments = async () => {
+      try {
+        const res = await tournamentsAPI.list();
+        const data = Array.isArray(res.data) ? res.data : (res.data.tournaments || res.data.data || []);
+        setTournaments(data.map(t => ({
+          id: t.id,
+          game: t.game?.name || t.game_name || '',
+          name: t.name || t.title || '',
+          status: t.status || 'upcoming',
+          registeredTeams: t.registered_teams ?? t.registeredTeams ?? 0,
+          maxTeams: t.max_teams ?? t.maxTeams ?? 16,
+          currentMatch: t.current_match ?? t.currentMatch ?? null,
+          prizePool: t.prize_pool ?? t.prizePool ?? 'TBD',
+        })));
+      } catch (err) {
+        toast.error('Failed to load tournaments');
+      } finally {
+        setLoadingTournaments(false);
+      }
+    };
+
+    const fetchGames = async () => {
+      try {
+        const res = await gamesAPI.list();
+        const data = Array.isArray(res.data) ? res.data : (res.data.games || res.data.data || []);
+        const mapped = data.map(g => ({
+          name: g.name || g.title || '',
+          genre: g.genre || g.description || '',
+          icon: g.icon || '🎮',
+        }));
+        setGameTitles(mapped);
+        if (mapped.length > 0 && !newT.game) {
+          setNewT(p => ({ ...p, game: mapped[0].name }));
+        }
+      } catch (err) {
+        toast.error('Failed to load games');
+      } finally {
+        setLoadingGames(false);
+      }
+    };
+
+    fetchTournaments();
+    fetchGames();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleStatusChange = async (id, status) => {
+    try {
+      await tournamentsAPI.update(id, { status });
+      setTournaments(prev => prev.map(t => t.id === id ? { ...t, status } : t));
+      toast.success('Tournament status updated');
+    } catch (err) {
+      toast.error('Failed to update tournament status');
+    }
   };
 
-  const handleCreate = (e) => {
+  const handleCreate = async (e) => {
     e.preventDefault();
     if (!newT.name.trim()) { toast.error('Tournament name required'); return; }
-    setTournaments(prev => [...prev, {
-      id: Date.now(), game: newT.game, name: newT.name,
-      status: 'upcoming', registeredTeams: 0, maxTeams: parseInt(newT.maxTeams),
-      currentMatch: null, prizePool: newT.prizePool || 'TBD',
-    }]);
-    setShowNewForm(false);
-    setNewT({ name: '', game: 'Apex Legends', maxTeams: 16, prizePool: '' });
-    toast.success('Tournament created!');
+    try {
+      const res = await tournamentsAPI.create({
+        name: newT.name,
+        game: newT.game,
+        max_teams: parseInt(newT.maxTeams),
+        prize_pool: newT.prizePool || 'TBD',
+      });
+      const created = res.data.tournament || res.data;
+      setTournaments(prev => [...prev, {
+        id: created.id || Date.now(),
+        game: created.game || created.game_name || newT.game,
+        name: created.name || created.title || newT.name,
+        status: created.status || 'upcoming',
+        registeredTeams: created.registered_teams ?? 0,
+        maxTeams: created.max_teams ?? parseInt(newT.maxTeams),
+        currentMatch: null,
+        prizePool: (created.prize_pool ?? newT.prizePool) || 'TBD',
+      }]);
+      setShowNewForm(false);
+      setNewT({ name: '', game: gameTitles[0]?.name || '', maxTeams: 16, prizePool: '' });
+      toast.success('Tournament created!');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to create tournament');
+    }
   };
 
   return (
@@ -115,83 +166,93 @@ export default function TournamentStatus() {
             </div>
           )}
 
-          {tournaments.map(t => {
-            const st = statusLabels[t.status];
-            const progress = (t.registeredTeams / t.maxTeams) * 100;
-            return (
-              <div key={t.id} className="card" style={{ padding: '1.25rem', position: 'relative', overflow: 'hidden' }}>
-                {/* Top border accent for live */}
-                {t.status === 'live' && (
-                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, #ff5252, #ff7675)' }} />
-                )}
-                {t.status === 'registration_open' && (
-                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, #69f0ae, #4fc3f7)' }} />
-                )}
+          {loadingTournaments ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem 0' }}>
+              <Loader2 size={28} className="animate-spin" style={{ color: '#475569' }} />
+            </div>
+          ) : tournaments.length === 0 ? (
+            <div className="card" style={{ padding: '2rem', textAlign: 'center', color: '#475569' }}>
+              No tournaments found. Create one to get started.
+            </div>
+          ) : (
+            tournaments.map(t => {
+              const st = statusLabels[t.status] || statusLabels.upcoming;
+              const progress = t.maxTeams > 0 ? (t.registeredTeams / t.maxTeams) * 100 : 0;
+              return (
+                <div key={t.id} className="card" style={{ padding: '1.25rem', position: 'relative', overflow: 'hidden' }}>
+                  {/* Top border accent for live */}
+                  {t.status === 'live' && (
+                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, #ff5252, #ff7675)' }} />
+                  )}
+                  {t.status === 'registration_open' && (
+                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, #69f0ae, #4fc3f7)' }} />
+                  )}
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.875rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span className={`badge ${st.cls}`}>
-                      {st.dot && <span className="live-dot" style={{ width: 6, height: 6 }} />}
-                      {st.label}
-                    </span>
-                    <span style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
-                      {t.game}
-                    </span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.875rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span className={`badge ${st.cls}`}>
+                        {st.dot && <span className="live-dot" style={{ width: 6, height: 6 }} />}
+                        {st.label}
+                      </span>
+                      <span style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+                        {t.game}
+                      </span>
+                    </div>
+                    {/* Status Dropdown */}
+                    <select
+                      className="input-field"
+                      style={{ width: 'auto', padding: '0.3rem 2rem 0.3rem 0.6rem', fontSize: '0.7rem', background: '#0a1628' }}
+                      value={t.status}
+                      onChange={e => handleStatusChange(t.id, e.target.value)}
+                    >
+                      {statusOptions.map(s => (
+                        <option key={s} value={s}>{s.replace(/_/g, ' ').toUpperCase()}</option>
+                      ))}
+                    </select>
                   </div>
-                  {/* Status Dropdown */}
-                  <select
-                    className="input-field"
-                    style={{ width: 'auto', padding: '0.3rem 2rem 0.3rem 0.6rem', fontSize: '0.7rem', background: '#0a1628' }}
-                    value={t.status}
-                    onChange={e => handleStatusChange(t.id, e.target.value)}
-                  >
-                    {statusOptions.map(s => (
-                      <option key={s} value={s}>{s.replace(/_/g, ' ').toUpperCase()}</option>
-                    ))}
-                  </select>
-                </div>
 
-                <h2 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.25rem', fontWeight: 700, color: '#e2e8f0', marginBottom: '1rem', textTransform: 'uppercase' }}>
-                  {t.name}
-                </h2>
+                  <h2 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.25rem', fontWeight: 700, color: '#e2e8f0', marginBottom: '1rem', textTransform: 'uppercase' }}>
+                    {t.name}
+                  </h2>
 
-                {t.status === 'live' ? (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
-                    {[
-                      { label: 'Registered Teams', value: `${t.registeredTeams} / ${t.maxTeams}` },
-                      { label: 'Current Match', value: t.currentMatch, gold: true },
-                      { label: 'Prize Pool', value: t.prizePool },
-                    ].map(item => (
-                      <div key={item.label}>
-                        <div style={{ fontSize: '0.65rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{item.label}</div>
-                        <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.1rem', fontWeight: 700, color: item.gold ? '#f5c518' : '#e2e8f0' }}>{item.value}</div>
+                  {t.status === 'live' ? (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
+                      {[
+                        { label: 'Registered Teams', value: `${t.registeredTeams} / ${t.maxTeams}` },
+                        { label: 'Current Match', value: t.currentMatch, gold: true },
+                        { label: 'Prize Pool', value: t.prizePool },
+                      ].map(item => (
+                        <div key={item.label}>
+                          <div style={{ fontSize: '0.65rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{item.label}</div>
+                          <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.1rem', fontWeight: 700, color: item.gold ? '#f5c518' : '#e2e8f0' }}>{item.value}</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ marginBottom: '1rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#64748b', marginBottom: 6 }}>
+                        <span style={{ textTransform: 'uppercase', letterSpacing: '0.06em' }}>Registration Progress</span>
+                        <span style={{ color: '#f5c518', fontWeight: 600 }}>{t.registeredTeams} / {t.maxTeams} Teams</span>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div style={{ marginBottom: '1rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#64748b', marginBottom: 6 }}>
-                      <span style={{ textTransform: 'uppercase', letterSpacing: '0.06em' }}>Registration Progress</span>
-                      <span style={{ color: '#f5c518', fontWeight: 600 }}>{t.registeredTeams} / {t.maxTeams} Teams</span>
+                      <div className="progress-bar">
+                        <div className="progress-fill" style={{ width: `${progress}%` }} />
+                      </div>
                     </div>
-                    <div className="progress-bar">
-                      <div className="progress-fill" style={{ width: `${progress}%` }} />
-                    </div>
-                  </div>
-                )}
+                  )}
 
-                <div style={{ display: 'flex', gap: 10 }}>
-                  <button className="btn-secondary" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <Settings size={12} />
-                    Config
-                  </button>
-                  <button className="btn-primary" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 4 }}>
-                    {t.status === 'live' ? <><Users size={12} /> Manage Teams</> : <><Edit3 size={12} /> Edit Details</>}
-                  </button>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <button className="btn-secondary" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Settings size={12} />
+                      Config
+                    </button>
+                    <button className="btn-primary" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      {t.status === 'live' ? <><Users size={12} /> Manage Teams</> : <><Edit3 size={12} /> Edit Details</>}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
 
         {/* Game Titles Panel */}
@@ -204,26 +265,36 @@ export default function TournamentStatus() {
               <Plus size={14} />
             </button>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {gameTitles.map(g => (
-              <div key={g.name} style={{
-                display: 'flex', alignItems: 'center', gap: 12, padding: '0.75rem',
-                background: '#0a1628', borderRadius: 8, cursor: 'pointer',
-                border: '1px solid #112650', transition: 'border-color 0.15s',
-              }}
-                className="card-hover"
-              >
-                <div style={{ width: 34, height: 34, background: '#112650', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0 }}>
-                  {g.icon}
+          {loadingGames ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}>
+              <Loader2 size={24} className="animate-spin" style={{ color: '#475569' }} />
+            </div>
+          ) : gameTitles.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '1rem 0', color: '#475569', fontSize: '0.8rem' }}>
+              No games found.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {gameTitles.map(g => (
+                <div key={g.name} style={{
+                  display: 'flex', alignItems: 'center', gap: 12, padding: '0.75rem',
+                  background: '#0a1628', borderRadius: 8, cursor: 'pointer',
+                  border: '1px solid #112650', transition: 'border-color 0.15s',
+                }}
+                  className="card-hover"
+                >
+                  <div style={{ width: 34, height: 34, background: '#112650', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0 }}>
+                    {g.icon}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#e2e8f0', fontFamily: 'Rajdhani, sans-serif' }}>{g.name}</div>
+                    <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{g.genre}</div>
+                  </div>
+                  <ChevronRight size={14} color="#475569" />
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#e2e8f0', fontFamily: 'Rajdhani, sans-serif' }}>{g.name}</div>
-                  <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{g.genre}</div>
-                </div>
-                <ChevronRight size={14} color="#475569" />
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

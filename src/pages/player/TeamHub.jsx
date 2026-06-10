@@ -1,14 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, UserPlus, LogOut, Users, Loader2, X, Upload, Shield, Crown } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { teamsAPI } from '../../services/api';
 import toast from 'react-hot-toast';
-
-const mockMembers = [
-  { id: 1, username: 'ShadowStep', role: 'captain', rank: 'Diamond', status: 'online' },
-  { id: 2, username: 'NightBlade', role: 'member', rank: 'Platinum', status: 'online' },
-  { id: 3, username: 'QuantumX', role: 'member', rank: 'Gold', status: 'offline' },
-  { id: 4, username: 'FrostByte', role: 'member', rank: 'Diamond', status: 'online' },
-];
 
 function CreateTeamForm({ onCreated }) {
   const [form, setForm] = useState({ name: '', logoUrl: '' });
@@ -26,10 +20,15 @@ function CreateTeamForm({ onCreated }) {
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setLoading(true);
-    await new Promise(r => setTimeout(r, 800));
-    setLoading(false);
-    toast.success(`Tim "${form.name}" berhasil dibuat!`);
-    onCreated({ name: form.name, logoUrl: form.logoUrl });
+    try {
+      const res = await teamsAPI.create({ name: form.name, logo_url: form.logoUrl || null });
+      toast.success(`Tim "${form.name}" berhasil dibuat!`);
+      onCreated(res.data);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Gagal membuat tim');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -95,7 +94,7 @@ function CreateTeamForm({ onCreated }) {
   );
 }
 
-function AddMemberModal({ onClose, onAdd }) {
+function AddMemberModal({ teamId, onClose, onAdd }) {
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -104,11 +103,16 @@ function AddMemberModal({ onClose, onAdd }) {
     e.preventDefault();
     if (!username.trim()) { setError('Username tidak boleh kosong'); return; }
     setLoading(true);
-    await new Promise(r => setTimeout(r, 600));
-    setLoading(false);
-    onAdd({ id: Date.now(), username: username.trim(), role: 'member', rank: 'Unranked', status: 'online' });
-    toast.success(`${username} ditambahkan ke tim!`);
-    onClose();
+    try {
+      await teamsAPI.addMember(teamId, username.trim());
+      toast.success(`${username} ditambahkan ke tim!`);
+      onAdd();
+      onClose();
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Gagal menambahkan member');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -151,32 +155,73 @@ function AddMemberModal({ onClose, onAdd }) {
 
 export default function TeamHub() {
   const { user, updateUser } = useAuth();
-  const [hasTeam, setHasTeam] = useState(!!user?.teamName);
-  const [teamName, setTeamName] = useState(user?.teamName || '');
-  const [members, setMembers] = useState(hasTeam ? mockMembers : []);
+  const [hasTeam, setHasTeam] = useState(!!user?.team_id);
+  const [teamData, setTeamData] = useState(null);
+  const [members, setMembers] = useState([]);
   const [showAddMember, setShowAddMember] = useState(false);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [loadingTeam, setLoadingTeam] = useState(false);
 
-  const handleTeamCreated = ({ name, logoUrl }) => {
+  const fetchTeam = async () => {
+    if (!user?.team_id) return;
+    setLoadingTeam(true);
+    try {
+      const res = await teamsAPI.get(user.team_id);
+      setTeamData(res.data);
+      setMembers(res.data.members || []);
+      setHasTeam(true);
+    } catch (err) {
+      console.error('Failed to fetch team', err);
+    } finally {
+      setLoadingTeam(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.team_id) {
+      fetchTeam();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.team_id]);
+
+  const handleTeamCreated = (team) => {
     setHasTeam(true);
-    setTeamName(name);
-    setMembers([{ id: 1, username: user?.username || 'You', role: 'captain', rank: 'Unranked', status: 'online' }]);
-    updateUser({ teamName: name });
+    setTeamData(team);
+    setMembers(team.members || []);
+    updateUser({ team_id: team.id, teamName: team.name });
   };
 
-  const handleLeaveTeam = () => {
-    setHasTeam(false);
-    setTeamName('');
-    setMembers([]);
-    updateUser({ teamName: null });
-    setShowLeaveConfirm(false);
-    toast.success('You have left the team.');
+  const handleLeaveTeam = async () => {
+    try {
+      await teamsAPI.leave(user.team_id);
+      setHasTeam(false);
+      setTeamData(null);
+      setMembers([]);
+      updateUser({ team_id: null, teamName: null });
+      setShowLeaveConfirm(false);
+      toast.success('You have left the team.');
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Gagal keluar dari tim');
+    }
   };
 
-  const handleRemoveMember = (id) => {
-    setMembers(prev => prev.filter(m => m.id !== id));
-    toast.success('Member removed from team.');
+  const handleRemoveMember = async (memberId, userId) => {
+    try {
+      await teamsAPI.removeMember(user.team_id, userId);
+      setMembers(prev => prev.filter(m => m.user_id !== userId));
+      toast.success('Member removed from team.');
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Gagal menghapus member');
+    }
   };
+
+  if (loadingTeam) {
+    return (
+      <div style={{ padding: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300 }}>
+        <Loader2 size={32} className="animate-spin" style={{ color: '#f5c518' }} />
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: '2rem', minHeight: '100%' }}>
@@ -201,11 +246,11 @@ export default function TeamHub() {
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
                   <h2 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.25rem', fontWeight: 700, color: '#f5c518', textTransform: 'uppercase' }}>
-                    {teamName}
+                    {teamData?.name || user?.teamName}
                   </h2>
-                  <span className="badge badge-verified">Verified</span>
+                  <span className="badge badge-verified">{teamData?.status === 'verified' ? 'Verified' : teamData?.status || 'Verified'}</span>
                 </div>
-                <div style={{ fontSize: '0.75rem', color: '#475569' }}>{members.length} members • NA East</div>
+                <div style={{ fontSize: '0.75rem', color: '#475569' }}>{members.length} members • {teamData?.region || 'NA East'}</div>
               </div>
               <div style={{ display: 'flex', gap: 10 }}>
                 <button className="btn-primary" onClick={() => setShowAddMember(true)} style={{ display: 'flex', alignItems: 'center', gap: 6 }} id="add-member-btn">
@@ -218,7 +263,7 @@ export default function TeamHub() {
             {/* Roster List */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {members.map(member => (
-                <div key={member.id} style={{
+                <div key={member.id || member.user_id} style={{
                   display: 'flex', alignItems: 'center', gap: 12, padding: '0.875rem',
                   background: '#0a1628', borderRadius: 8, border: '1px solid #112650',
                   transition: 'border-color 0.15s',
@@ -247,19 +292,17 @@ export default function TeamHub() {
                       )}
                     </div>
                     <div style={{ fontSize: '0.7rem', color: '#475569', display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: member.status === 'online' ? '#69f0ae' : '#475569', display: 'inline-block' }} />
-                      {member.status === 'online' ? 'Online' : 'Offline'}
-                      <span>·</span>
-                      <span>{member.rank}</span>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: member.status === 'verified' ? '#69f0ae' : '#475569', display: 'inline-block' }} />
+                      {member.status === 'verified' ? 'Active' : member.status || 'Active'}
                     </div>
                   </div>
                   {/* Remove button (not for captain) */}
                   {member.role !== 'captain' && (
                     <button
-                      onClick={() => handleRemoveMember(member.id)}
+                      onClick={() => handleRemoveMember(member.id, member.user_id)}
                       style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', padding: 6, borderRadius: 6, display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}
                       title="Remove member"
-                      id={`remove-member-${member.id}`}
+                      id={`remove-member-${member.user_id}`}
                     >
                       <X size={14} />
                     </button>
@@ -276,14 +319,14 @@ export default function TeamHub() {
                 Team Stats
               </h3>
               {[
-                { label: 'Total Wins', value: '142' },
-                { label: 'Win Rate', value: '76%' },
-                { label: 'Rank', value: '#8 NA East' },
-                { label: 'Tournaments', value: '12' },
+                { label: 'Total Wins', value: String(teamData?.wins || 0) },
+                { label: 'Members', value: String(members.length) },
+                { label: 'Region', value: teamData?.region || 'NA East' },
+                { label: 'Status', value: teamData?.status || 'verified' },
               ].map(s => (
                 <div key={s.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid #112650' }}>
                   <span style={{ fontSize: '0.8rem', color: '#64748b' }}>{s.label}</span>
-                  <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: '#e2e8f0' }}>{s.value}</span>
+                  <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: '#e2e8f0', textTransform: 'capitalize' }}>{s.value}</span>
                 </div>
               ))}
             </div>
@@ -318,8 +361,9 @@ export default function TeamHub() {
       {/* Add Member Modal */}
       {showAddMember && (
         <AddMemberModal
+          teamId={user.team_id}
           onClose={() => setShowAddMember(false)}
-          onAdd={(member) => setMembers(prev => [...prev, member])}
+          onAdd={() => fetchTeam()}
         />
       )}
     </div>

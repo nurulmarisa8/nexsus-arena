@@ -1,34 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Trophy, Filter, Search, ChevronDown, CheckCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
-
-const TOURNAMENTS = [
-  {
-    id: 1, name: 'Ignition Cup Qualifiers', game: 'Valorant', icon: '🔫',
-    status: 'registration_open', registeredTeams: 12, maxTeams: 32,
-    prizePool: '$15,000', startDate: 'Jun 5, 2025', region: 'Global', format: '5v5 Double Elim',
-    description: 'Open qualifiers for the Ignition Cup. Top 8 advance to finals.',
-  },
-  {
-    id: 2, name: 'Nexus Championship S2', game: 'Apex Legends', icon: '🎯',
-    status: 'registration_open', registeredTeams: 4, maxTeams: 16,
-    prizePool: '$30,000', startDate: 'Jun 15, 2025', region: 'NA', format: 'Squad BR',
-    description: 'Season 2 of the premier Nexus Arena championship circuit.',
-  },
-  {
-    id: 3, name: 'Rookie Rising Cup', game: 'League of Legends', icon: '⚔️',
-    status: 'registration_open', registeredTeams: 8, maxTeams: 16,
-    prizePool: '$5,000', startDate: 'Jun 20, 2025', region: 'EU', format: '5v5 Single Elim',
-    description: 'Tournament for teams with rating under 2000. Perfect for new teams.',
-  },
-  {
-    id: 4, name: 'Apex Predator Series Q3', game: 'Apex Legends', icon: '🎯',
-    status: 'upcoming', registeredTeams: 0, maxTeams: 20,
-    prizePool: '$50,000', startDate: 'Jul 1, 2025', region: 'NA', format: 'Squad BR',
-    description: 'Quarterly flagship tournament. Registration opens June 15.',
-  },
-];
+import { tournamentsAPI } from '../../services/api';
 
 const statusConfig = {
   registration_open: { label: 'REGISTRATION OPEN', cls: 'badge-open' },
@@ -39,15 +13,52 @@ const statusConfig = {
 
 export default function Tournaments() {
   const { user } = useAuth();
-  const hasTeam = !!user?.teamName;
+  const hasTeam = !!(user?.teamName || user?.team_name || user?.team_id);
   const [registering, setRegistering] = useState(null);
   const [registered, setRegistered] = useState([]);
   const [search, setSearch] = useState('');
   const [gameFilter, setGameFilter] = useState('All');
+  const [tournaments, setTournaments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const games = ['All', ...new Set(TOURNAMENTS.map(t => t.game))];
+  useEffect(() => {
+    const fetchTournaments = async () => {
+      try {
+        const res = await tournamentsAPI.list();
+        const data = Array.isArray(res.data) ? res.data : (res.data.tournaments || res.data.data || []);
+        setTournaments(data.map(t => ({
+          id: t.id,
+          name: t.name || t.title || '',
+          game: t.game?.name || t.game_name || '',
+          icon: t.icon || '🎮',
+          status: t.status || 'upcoming',
+          registeredTeams: t.registered_teams ?? t.registeredTeams ?? 0,
+          maxTeams: t.max_teams ?? t.maxTeams ?? 16,
+          prizePool: t.prize_pool ?? t.prizePool ?? 'TBD',
+          startDate: t.start_date ?? t.startDate ?? t.date ?? '',
+          region: t.region || 'Global',
+          format: t.format || '',
+          description: t.description || '',
+          isRegistered: t.is_registered ?? t.isRegistered ?? false,
+        })));
+        // Track already-registered tournaments
+        const alreadyRegistered = data
+          .filter(t => t.is_registered || t.isRegistered)
+          .map(t => t.id);
+        setRegistered(alreadyRegistered);
+      } catch (err) {
+        toast.error('Failed to load tournaments');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const filtered = TOURNAMENTS.filter(t => {
+    fetchTournaments();
+  }, []);
+
+  const games = ['All', ...new Set(tournaments.map(t => t.game).filter(Boolean))];
+
+  const filtered = tournaments.filter(t => {
     const matchSearch = !search || t.name.toLowerCase().includes(search.toLowerCase()) || t.game.toLowerCase().includes(search.toLowerCase());
     const matchGame = gameFilter === 'All' || t.game === gameFilter;
     return matchSearch && matchGame;
@@ -57,11 +68,24 @@ export default function Tournaments() {
     if (!hasTeam) { toast.error('Kamu harus memiliki tim terlebih dahulu!'); return; }
     if (tournament.status !== 'registration_open') { toast.error('Registrasi belum dibuka.'); return; }
     setRegistering(tournament.id);
-    await new Promise(r => setTimeout(r, 1000));
-    setRegistering(null);
-    setRegistered(prev => [...prev, tournament.id]);
-    toast.success(`Tim "${user.teamName}" berhasil terdaftar di ${tournament.name}!`);
+    try {
+      await tournamentsAPI.register(tournament.id);
+      setRegistered(prev => [...prev, tournament.id]);
+      toast.success(`Tim "${user?.teamName || user?.team_name || 'Your team'}" berhasil terdaftar di ${tournament.name}!`);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Gagal mendaftar turnamen.');
+    } finally {
+      setRegistering(null);
+    }
   };
+
+  if (loading) {
+    return (
+      <div style={{ padding: '2rem', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+        <Loader2 size={32} className="animate-spin" style={{ color: '#475569' }} />
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: '2rem', minHeight: '100%' }}>
@@ -110,11 +134,11 @@ export default function Tournaments() {
       {/* Tournament Cards */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {filtered.map(t => {
-          const st = statusConfig[t.status];
+          const st = statusConfig[t.status] || statusConfig.upcoming;
           const isRegistered = registered.includes(t.id);
           const isRegistering = registering === t.id;
           const canRegister = t.status === 'registration_open' && hasTeam && !isRegistered;
-          const progress = (t.registeredTeams / t.maxTeams) * 100;
+          const progress = t.maxTeams > 0 ? (t.registeredTeams / t.maxTeams) * 100 : 0;
 
           return (
             <div key={t.id} className="card card-hover" style={{ padding: '1.25rem', position: 'relative', overflow: 'hidden' }}>

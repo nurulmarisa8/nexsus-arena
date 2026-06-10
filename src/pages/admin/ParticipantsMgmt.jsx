@@ -1,22 +1,7 @@
-import React, { useState } from 'react';
-import { Download, Plus, Search, Filter, ChevronLeft, ChevronRight, Gamepad2, Zap, Shield, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Download, Plus, Search, Filter, ChevronLeft, ChevronRight, Gamepad2, Zap, Shield, AlertTriangle, Loader2, X } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-const teamsData = [
-  { id: 1, name: 'Void Walkers', icon: '🎮', captain: '@ShadowStep', region: 'NA East', wins: 142, status: 'verified' },
-  { id: 2, name: 'Crimson Surge', icon: '⚡', captain: '@RedViper', region: 'EU West', wins: 89, status: 'verified' },
-  { id: 3, name: 'Aegis Protocol', icon: '🛡', captain: '@TitanBlock', region: 'Asia Pacific', wins: 12, status: 'pending' },
-  { id: 4, name: 'Neon Syndicate', icon: '🎯', captain: '@GlitchUser', region: 'NA West', wins: 205, status: 'suspended' },
-  { id: 5, name: 'Phantom X', icon: '👻', captain: '@SpecterAim', region: 'EU East', wins: 67, status: 'verified' },
-  { id: 6, name: 'Iron Veil', icon: '⚔️', captain: '@BladeMaster', region: 'NA East', wins: 34, status: 'pending' },
-];
-
-const usersData = [
-  { id: 1, username: 'ShadowStep', email: 'shadow@nexus.gg', region: 'NA East', team: 'Void Walkers', joined: '2024-01-15', status: 'verified' },
-  { id: 2, username: 'RedViper', email: 'red@nexus.gg', region: 'EU West', team: 'Crimson Surge', joined: '2024-02-03', status: 'verified' },
-  { id: 3, username: 'TitanBlock', email: 'titan@nexus.gg', region: 'Asia Pacific', team: 'Aegis Protocol', joined: '2024-03-20', status: 'pending' },
-  { id: 4, username: 'GlitchUser', email: 'glitch@nexus.gg', region: 'NA West', team: 'Neon Syndicate', joined: '2023-11-08', status: 'suspended' },
-];
+import { teamsAPI, usersAPI } from '../../services/api';
 
 const statusMap = {
   verified: { label: 'VERIFIED', cls: 'badge-verified' },
@@ -26,6 +11,7 @@ const statusMap = {
 
 const regions = ['All Regions', 'NA East', 'NA West', 'EU West', 'EU East', 'Asia Pacific'];
 const statuses = ['All Statuses', 'verified', 'pending', 'suspended'];
+const statusChangeOptions = ['verified', 'pending', 'suspended'];
 
 export default function ParticipantsMgmt() {
   const [activeTab, setActiveTab] = useState('Teams');
@@ -34,6 +20,71 @@ export default function ParticipantsMgmt() {
   const [statusFilter, setStatusFilter] = useState('All Statuses');
   const [page, setPage] = useState(1);
   const perPage = 5;
+
+  const [teamsData, setTeamsData] = useState([]);
+  const [usersData, setUsersData] = useState([]);
+  const [loadingTeams, setLoadingTeams] = useState(true);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+
+  // Status dropdown state
+  const [manageDropdown, setManageDropdown] = useState(null);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        const res = await teamsAPI.list();
+        const data = Array.isArray(res.data) ? res.data : (res.data.teams || res.data.data || []);
+        setTeamsData(data.map(t => ({
+          id: t.id,
+          name: t.name || '',
+          icon: t.icon || t.logo || '🎮',
+          captain: t.captain || t.captain_name || (t.captain_username ? `@${t.captain_username}` : ''),
+          region: t.region || '',
+          wins: t.wins ?? t.total_wins ?? 0,
+          status: t.status || 'pending',
+        })));
+      } catch (err) {
+        toast.error('Failed to load teams');
+      } finally {
+        setLoadingTeams(false);
+      }
+    };
+
+    const fetchUsers = async () => {
+      try {
+        const res = await usersAPI.list();
+        const data = Array.isArray(res.data) ? res.data : (res.data.users || res.data.data || []);
+        setUsersData(data.map(u => ({
+          id: u.id,
+          username: u.username || '',
+          email: u.email || '',
+          region: u.region || '',
+          team: u.team || u.team_name || '',
+          joined: u.joined || u.created_at || u.joined_at || '',
+          status: u.status || 'pending',
+        })));
+      } catch (err) {
+        toast.error('Failed to load users');
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+
+    fetchTeams();
+    fetchUsers();
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setManageDropdown(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const filterData = (data) => data.filter(item => {
     const searchLower = search.toLowerCase();
@@ -51,12 +102,44 @@ export default function ParticipantsMgmt() {
   const totalPages = Math.ceil(currentData.length / perPage);
   const paginated = currentData.slice((page - 1) * perPage, page * perPage);
 
+  const isLoading = activeTab === 'Teams' ? loadingTeams : loadingUsers;
+
   const handleManage = (item) => {
-    toast.success(`Managing ${item.name || item.username}...`);
+    setManageDropdown(manageDropdown === item.id ? null : item.id);
   };
 
-  const handleExport = () => {
-    toast.success('Exporting CSV...');
+  const handleStatusChange = async (item, newStatus) => {
+    try {
+      if (activeTab === 'Teams') {
+        await teamsAPI.updateStatus(item.id, newStatus);
+        setTeamsData(prev => prev.map(t => t.id === item.id ? { ...t, status: newStatus } : t));
+      } else {
+        await usersAPI.updateStatus(item.id, newStatus);
+        setUsersData(prev => prev.map(u => u.id === item.id ? { ...u, status: newStatus } : u));
+      }
+      toast.success(`Status updated to ${newStatus}`);
+    } catch (err) {
+      toast.error('Failed to update status');
+    }
+    setManageDropdown(null);
+  };
+
+  const handleExport = async () => {
+    try {
+      const res = await usersAPI.exportCSV();
+      const blob = new Blob([res.data], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'users_export.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('CSV exported successfully!');
+    } catch (err) {
+      toast.error('Failed to export CSV');
+    }
   };
 
   return (
@@ -134,7 +217,11 @@ export default function ParticipantsMgmt() {
 
         {/* Table */}
         <div style={{ overflowX: 'auto' }}>
-          {activeTab === 'Teams' ? (
+          {isLoading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem 0' }}>
+              <Loader2 size={28} className="animate-spin" style={{ color: '#475569' }} />
+            </div>
+          ) : activeTab === 'Teams' ? (
             <table className="data-table">
               <thead>
                 <tr>
@@ -148,7 +235,7 @@ export default function ParticipantsMgmt() {
               </thead>
               <tbody>
                 {paginated.map(team => {
-                  const st = statusMap[team.status];
+                  const st = statusMap[team.status] || statusMap.pending;
                   return (
                     <tr key={team.id}>
                       <td>
@@ -168,14 +255,41 @@ export default function ParticipantsMgmt() {
                       </td>
                       <td><span className={`badge ${st.cls}`}>{st.label}</span></td>
                       <td>
-                        <button
-                          className="btn-secondary"
-                          style={{ fontSize: '0.75rem', padding: '0.35rem 0.875rem', color: '#f5c518', borderColor: 'rgba(245,197,24,0.3)' }}
-                          onClick={() => handleManage(team)}
-                          id={`manage-team-${team.id}`}
-                        >
-                          Manage
-                        </button>
+                        <div style={{ position: 'relative' }}>
+                          <button
+                            className="btn-secondary"
+                            style={{ fontSize: '0.75rem', padding: '0.35rem 0.875rem', color: '#f5c518', borderColor: 'rgba(245,197,24,0.3)' }}
+                            onClick={() => handleManage(team)}
+                            id={`manage-team-${team.id}`}
+                          >
+                            Manage
+                          </button>
+                          {manageDropdown === team.id && (
+                            <div ref={dropdownRef} style={{
+                              position: 'absolute', top: '100%', right: 0, marginTop: 4, zIndex: 50,
+                              background: '#0d1f3c', border: '1px solid #162f62', borderRadius: 8,
+                              padding: '0.5rem 0', minWidth: 150, boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                            }}>
+                              {statusChangeOptions.map(s => (
+                                <button
+                                  key={s}
+                                  onClick={() => handleStatusChange(team, s)}
+                                  style={{
+                                    display: 'block', width: '100%', padding: '0.5rem 1rem', background: 'none',
+                                    border: 'none', color: team.status === s ? '#f5c518' : '#94a3b8',
+                                    fontSize: '0.8rem', textAlign: 'left', cursor: 'pointer',
+                                    fontFamily: 'Rajdhani, sans-serif', fontWeight: team.status === s ? 700 : 500,
+                                  }}
+                                  onMouseEnter={e => e.target.style.background = 'rgba(245,197,24,0.08)'}
+                                  onMouseLeave={e => e.target.style.background = 'none'}
+                                >
+                                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                                  {team.status === s && ' ✓'}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -196,7 +310,7 @@ export default function ParticipantsMgmt() {
               </thead>
               <tbody>
                 {paginated.map(user => {
-                  const st = statusMap[user.status];
+                  const st = statusMap[user.status] || statusMap.pending;
                   return (
                     <tr key={user.id}>
                       <td>
@@ -209,14 +323,41 @@ export default function ParticipantsMgmt() {
                       <td style={{ color: '#94a3b8', fontSize: '0.85rem' }}>{user.team || '—'}</td>
                       <td><span className={`badge ${st.cls}`}>{st.label}</span></td>
                       <td>
-                        <button
-                          className="btn-secondary"
-                          style={{ fontSize: '0.75rem', padding: '0.35rem 0.875rem', color: '#f5c518', borderColor: 'rgba(245,197,24,0.3)' }}
-                          onClick={() => handleManage(user)}
-                          id={`manage-user-${user.id}`}
-                        >
-                          Manage
-                        </button>
+                        <div style={{ position: 'relative' }}>
+                          <button
+                            className="btn-secondary"
+                            style={{ fontSize: '0.75rem', padding: '0.35rem 0.875rem', color: '#f5c518', borderColor: 'rgba(245,197,24,0.3)' }}
+                            onClick={() => handleManage(user)}
+                            id={`manage-user-${user.id}`}
+                          >
+                            Manage
+                          </button>
+                          {manageDropdown === user.id && (
+                            <div ref={dropdownRef} style={{
+                              position: 'absolute', top: '100%', right: 0, marginTop: 4, zIndex: 50,
+                              background: '#0d1f3c', border: '1px solid #162f62', borderRadius: 8,
+                              padding: '0.5rem 0', minWidth: 150, boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                            }}>
+                              {statusChangeOptions.map(s => (
+                                <button
+                                  key={s}
+                                  onClick={() => handleStatusChange(user, s)}
+                                  style={{
+                                    display: 'block', width: '100%', padding: '0.5rem 1rem', background: 'none',
+                                    border: 'none', color: user.status === s ? '#f5c518' : '#94a3b8',
+                                    fontSize: '0.8rem', textAlign: 'left', cursor: 'pointer',
+                                    fontFamily: 'Rajdhani, sans-serif', fontWeight: user.status === s ? 700 : 500,
+                                  }}
+                                  onMouseEnter={e => e.target.style.background = 'rgba(245,197,24,0.08)'}
+                                  onMouseLeave={e => e.target.style.background = 'none'}
+                                >
+                                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                                  {user.status === s && ' ✓'}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -227,27 +368,32 @@ export default function ParticipantsMgmt() {
         </div>
 
         {/* Pagination */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.875rem 1.25rem', borderTop: '1px solid #112650' }}>
-          <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-            Showing {((page - 1) * perPage) + 1} to {Math.min(page * perPage, currentData.length)} of {currentData.length} entries
-          </span>
-          <div style={{ display: 'flex', gap: 6 }}>
-            <button
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              disabled={page === 1}
-              style={{ padding: '0.35rem 0.6rem', background: '#0a1628', border: '1px solid #112650', borderRadius: 6, color: page === 1 ? '#475569' : '#94a3b8', cursor: page === 1 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center' }}
-            >
-              <ChevronLeft size={14} />
-            </button>
-            <button
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages || totalPages === 0}
-              style={{ padding: '0.35rem 0.6rem', background: '#0a1628', border: '1px solid #112650', borderRadius: 6, color: (page === totalPages || totalPages === 0) ? '#475569' : '#94a3b8', cursor: (page === totalPages || totalPages === 0) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center' }}
-            >
-              <ChevronRight size={14} />
-            </button>
+        {!isLoading && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.875rem 1.25rem', borderTop: '1px solid #112650' }}>
+            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+              {currentData.length > 0
+                ? `Showing ${((page - 1) * perPage) + 1} to ${Math.min(page * perPage, currentData.length)} of ${currentData.length} entries`
+                : 'No entries found'
+              }
+            </span>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                style={{ padding: '0.35rem 0.6rem', background: '#0a1628', border: '1px solid #112650', borderRadius: 6, color: page === 1 ? '#475569' : '#94a3b8', cursor: page === 1 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center' }}
+              >
+                <ChevronLeft size={14} />
+              </button>
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages || totalPages === 0}
+                style={{ padding: '0.35rem 0.6rem', background: '#0a1628', border: '1px solid #112650', borderRadius: 6, color: (page === totalPages || totalPages === 0) ? '#475569' : '#94a3b8', cursor: (page === totalPages || totalPages === 0) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center' }}
+              >
+                <ChevronRight size={14} />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

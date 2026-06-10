@@ -1,41 +1,7 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { authAPI } from '../services/api';
 
 const AuthContext = createContext(null);
-
-// Mock users database untuk development
-const MOCK_USERS = [
-  {
-    id: 1,
-    username: 'admin',
-    email: 'admin@nexusarena.gg',
-    password: 'admin123',
-    role: 'admin',
-    avatar: null,
-    division: 'Command Center',
-  },
-  {
-    id: 2,
-    username: 'ShadowStep',
-    email: 'player@nexusarena.gg',
-    password: 'player123',
-    role: 'player',
-    avatar: null,
-    division: 'Vanguard Division',
-    teamId: 1,
-    teamName: 'Void Walkers',
-  },
-  {
-    id: 3,
-    username: 'RedViper',
-    email: 'redviper@nexusarena.gg',
-    password: 'player123',
-    role: 'player',
-    avatar: null,
-    division: 'Vanguard Division',
-    teamId: null,
-    teamName: null,
-  },
-];
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
@@ -46,26 +12,48 @@ export function AuthProvider({ children }) {
       return null;
     }
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // On mount: validate existing token
+  useEffect(() => {
+    const validateToken = async () => {
+      const token = localStorage.getItem('nexus_token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const res = await authAPI.me();
+        const userData = res.data.user || res.data;
+        setUser(userData);
+        localStorage.setItem('nexus_user', JSON.stringify(userData));
+      } catch {
+        localStorage.removeItem('nexus_token');
+        localStorage.removeItem('nexus_user');
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    validateToken();
+  }, []);
 
   const login = useCallback(async (email, password) => {
     setLoading(true);
     setError(null);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 800));
-      const found = MOCK_USERS.find(
-        u => (u.email === email || u.username === email) && u.password === password
-      );
-      if (!found) throw new Error('Email atau password salah.');
-      const { password: _, ...safeUser } = found;
-      setUser(safeUser);
-      localStorage.setItem('nexus_user', JSON.stringify(safeUser));
-      return safeUser;
+      const res = await authAPI.login(email, password);
+      const { access_token, token, user: userData } = res.data;
+      const jwtToken = access_token || token;
+      localStorage.setItem('nexus_token', jwtToken);
+      localStorage.setItem('nexus_user', JSON.stringify(userData));
+      setUser(userData);
+      return userData;
     } catch (err) {
-      setError(err.message);
-      throw err;
+      const message = err.response?.data?.detail || err.response?.data?.message || err.response?.data?.error || 'Email atau password salah.';
+      setError(message);
+      throw new Error(message);
     } finally {
       setLoading(false);
     }
@@ -75,26 +63,17 @@ export function AuthProvider({ children }) {
     setLoading(true);
     setError(null);
     try {
-      await new Promise(resolve => setTimeout(resolve, 800));
-      const exists = MOCK_USERS.find(u => u.email === data.email || u.username === data.username);
-      if (exists) throw new Error('Email atau username sudah terdaftar.');
-      const newUser = {
-        id: MOCK_USERS.length + 1,
-        username: data.username,
-        email: data.email,
-        role: 'player',
-        avatar: null,
-        division: 'Rookie Division',
-        teamId: null,
-        teamName: null,
-      };
-      MOCK_USERS.push({ ...newUser, password: data.password });
-      setUser(newUser);
-      localStorage.setItem('nexus_user', JSON.stringify(newUser));
-      return newUser;
+      const res = await authAPI.register(data);
+      const { access_token, token, user: userData } = res.data;
+      const jwtToken = access_token || token;
+      localStorage.setItem('nexus_token', jwtToken);
+      localStorage.setItem('nexus_user', JSON.stringify(userData));
+      setUser(userData);
+      return userData;
     } catch (err) {
-      setError(err.message);
-      throw err;
+      const message = err.response?.data?.detail || err.response?.data?.message || err.response?.data?.error || 'Registrasi gagal.';
+      setError(message);
+      throw new Error(message);
     } finally {
       setLoading(false);
     }
@@ -102,6 +81,7 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(() => {
     setUser(null);
+    localStorage.removeItem('nexus_token');
     localStorage.removeItem('nexus_user');
   }, []);
 

@@ -1,28 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Gamepad2, Radio, Users, Swords, TrendingUp, ExternalLink,
-  Plus, Edit3, Server, ChevronRight
+  Plus, Edit3, Server, ChevronRight, Loader2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { statsAPI, matchesAPI, serversAPI } from '../../services/api';
+import toast from 'react-hot-toast';
 
-const stats = [
-  { label: 'Total Games', value: '1,432', change: '+12%', changeUp: true, icon: Gamepad2 },
-  { label: 'Active Matches', value: '24', live: true, icon: Radio },
-  { label: 'Registered Teams', value: '256', icon: Users },
-  { label: 'Active Users', value: '8,941', change: '+4%', changeUp: true, icon: TrendingUp },
-];
-
-const recentMatches = [
-  { id: '#AX-992', teams: ['Cloud9', 'Fnatic'], schedule: 'Today, 14:00 EST', status: 'in_progress' },
-  { id: '#AX-993', teams: ['Team Liquid', 'Navi'], schedule: 'Today, 16:30 EST', status: 'upcoming' },
-  { id: '#AX-991', teams: ['G2 Esports', 'Vitality'], schedule: 'Yesterday, 20:00 EST', status: 'finished' },
-  { id: '#AX-990', teams: ['FaZe Clan', 'Astralis'], schedule: 'Yesterday, 17:00 EST', status: 'finished' },
-];
-
-const serverSchedules = [
-  { time: '16:30 EST', region: 'NA-EAST', title: 'Quarter Finals Group A', server: 'US-E-01', active: true },
-  { time: '19:00 EST', region: 'EU-WEST', title: 'Quarter Finals Group B', server: 'EU-W-04', active: false },
-  { time: 'Tomorrow, 14:00 EST', region: 'NA-WEST', title: 'Semi Finals Match 1', server: 'US-W-02', active: false },
+const defaultStats = [
+  { label: 'Total Games', value: '0', change: null, changeUp: false, icon: Gamepad2 },
+  { label: 'Active Matches', value: '0', live: true, icon: Radio },
+  { label: 'Registered Teams', value: '0', icon: Users },
+  { label: 'Active Users', value: '0', change: null, changeUp: false, icon: TrendingUp },
 ];
 
 function StatusBadge({ status }) {
@@ -42,6 +31,73 @@ function StatusBadge({ status }) {
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  const [stats, setStats] = useState(defaultStats);
+  const [recentMatches, setRecentMatches] = useState([]);
+  const [serverSchedules, setServerSchedules] = useState([]);
+  const [loadingStats, setLoadingStats] = useState(true);
+  const [loadingMatches, setLoadingMatches] = useState(true);
+  const [loadingServers, setLoadingServers] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await statsAPI.admin();
+        const d = res.data;
+        setStats([
+          { label: 'Total Games', value: String(d.total_games ?? d.totalGames ?? 0), change: d.games_change ?? d.gamesChange ?? null, changeUp: (d.games_change_up ?? d.gamesChangeUp ?? true), icon: Gamepad2 },
+          { label: 'Active Matches', value: String(d.active_matches ?? d.activeMatches ?? 0), live: true, icon: Radio },
+          { label: 'Registered Teams', value: String(d.registered_teams ?? d.registeredTeams ?? 0), icon: Users },
+          { label: 'Active Users', value: String(d.active_users ?? d.activeUsers ?? 0), change: d.users_change ?? d.usersChange ?? null, changeUp: (d.users_change_up ?? d.usersChangeUp ?? true), icon: TrendingUp },
+        ]);
+      } catch (err) {
+        toast.error('Failed to load dashboard stats');
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+
+    const fetchMatches = async () => {
+      try {
+        const res = await matchesAPI.list({ limit: 4 });
+        const data = Array.isArray(res.data) ? res.data : (res.data.matches || res.data.data || []);
+        setRecentMatches(data.slice(0, 4).map(m => ({
+          id: m.id ? `#${m.id}` : (m.match_id || ''),
+          teams: [
+            m.team1_name || m.team1?.name || m.teams?.[0] || 'Team 1',
+            m.team2_name || m.team2?.name || m.teams?.[1] || 'Team 2',
+          ],
+          schedule: m.schedule || m.scheduled_at || m.start_time || '',
+          status: m.status || 'upcoming',
+        })));
+      } catch (err) {
+        toast.error('Failed to load recent matches');
+      } finally {
+        setLoadingMatches(false);
+      }
+    };
+
+    const fetchServers = async () => {
+      try {
+        const res = await serversAPI.list();
+        const data = Array.isArray(res.data) ? res.data : (res.data.servers || res.data.data || []);
+        setServerSchedules(data.map(s => ({
+          time: s.time || s.scheduled_time || '',
+          region: s.region || '',
+          title: s.title || s.name || '',
+          server: s.server || s.server_name || s.server_id || '',
+          active: s.active ?? s.is_active ?? false,
+        })));
+      } catch (err) {
+        toast.error('Failed to load server schedules');
+      } finally {
+        setLoadingServers(false);
+      }
+    };
+
+    fetchStats();
+    fetchMatches();
+    fetchServers();
+  }, []);
 
   return (
     <div style={{ padding: '2rem', minHeight: '100%' }}>
@@ -79,9 +135,9 @@ export default function AdminDashboard() {
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
               <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2rem', fontWeight: 700, color: '#e2e8f0' }}>
-                {value}
+                {loadingStats ? <Loader2 size={24} className="animate-spin" style={{ color: '#475569' }} /> : value}
               </span>
-              {change && (
+              {change && !loadingStats && (
                 <span style={{ fontSize: '0.75rem', fontWeight: 600, color: changeUp ? '#69f0ae' : '#ff5252' }}>
                   {change}
                 </span>
@@ -107,34 +163,44 @@ export default function AdminDashboard() {
             </button>
           </div>
 
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Match ID</th>
-                <th>Teams</th>
-                <th>Schedule</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentMatches.map(match => (
-                <tr key={match.id} style={{ cursor: 'pointer' }}>
-                  <td>
-                    <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: '#e2e8f0', fontSize: '0.9rem' }}>
-                      {match.id}
-                    </span>
-                  </td>
-                  <td>
-                    <span style={{ color: '#f5c518', fontWeight: 600 }}>{match.teams[0]}</span>
-                    <span style={{ color: '#475569', margin: '0 4px', fontSize: '0.75rem' }}>vs</span>
-                    <span style={{ color: '#cbd5e1', fontWeight: 500 }}>{match.teams[1]}</span>
-                  </td>
-                  <td style={{ color: '#64748b', fontSize: '0.8rem' }}>{match.schedule}</td>
-                  <td><StatusBadge status={match.status} /></td>
+          {loadingMatches ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}>
+              <Loader2 size={24} className="animate-spin" style={{ color: '#475569' }} />
+            </div>
+          ) : recentMatches.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '2rem 0', color: '#475569', fontSize: '0.85rem' }}>
+              No recent matches found.
+            </div>
+          ) : (
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Match ID</th>
+                  <th>Teams</th>
+                  <th>Schedule</th>
+                  <th>Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {recentMatches.map(match => (
+                  <tr key={match.id} style={{ cursor: 'pointer' }}>
+                    <td>
+                      <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: '#e2e8f0', fontSize: '0.9rem' }}>
+                        {match.id}
+                      </span>
+                    </td>
+                    <td>
+                      <span style={{ color: '#f5c518', fontWeight: 600 }}>{match.teams[0]}</span>
+                      <span style={{ color: '#475569', margin: '0 4px', fontSize: '0.75rem' }}>vs</span>
+                      <span style={{ color: '#cbd5e1', fontWeight: 500 }}>{match.teams[1]}</span>
+                    </td>
+                    <td style={{ color: '#64748b', fontSize: '0.8rem' }}>{match.schedule}</td>
+                    <td><StatusBadge status={match.status} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
 
         {/* Server Schedules */}
@@ -144,32 +210,42 @@ export default function AdminDashboard() {
               Server Schedules
             </h2>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {serverSchedules.map((s, i) => (
-              <div key={i} style={{
-                padding: '0.875rem',
-                background: s.active ? 'rgba(245,197,24,0.07)' : '#0a1628',
-                border: `1px solid ${s.active ? 'rgba(245,197,24,0.25)' : '#112650'}`,
-                borderRadius: 8,
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-              }}
-                className="card-hover"
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontSize: '0.7rem', color: s.active ? '#f5c518' : '#64748b', fontWeight: 600 }}>{s.time}</span>
-                  <span style={{ fontSize: '0.65rem', color: '#475569', background: '#112650', padding: '2px 8px', borderRadius: 4, letterSpacing: '0.06em' }}>{s.region}</span>
+          {loadingServers ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}>
+              <Loader2 size={24} className="animate-spin" style={{ color: '#475569' }} />
+            </div>
+          ) : serverSchedules.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '2rem 0', color: '#475569', fontSize: '0.85rem' }}>
+              No server schedules found.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {serverSchedules.map((s, i) => (
+                <div key={i} style={{
+                  padding: '0.875rem',
+                  background: s.active ? 'rgba(245,197,24,0.07)' : '#0a1628',
+                  border: `1px solid ${s.active ? 'rgba(245,197,24,0.25)' : '#112650'}`,
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+                  className="card-hover"
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <span style={{ fontSize: '0.7rem', color: s.active ? '#f5c518' : '#64748b', fontWeight: 600 }}>{s.time}</span>
+                    <span style={{ fontSize: '0.65rem', color: '#475569', background: '#112650', padding: '2px 8px', borderRadius: 4, letterSpacing: '0.06em' }}>{s.region}</span>
+                  </div>
+                  <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#e2e8f0', marginBottom: 4 }}>
+                    {s.title}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.7rem', color: '#475569' }}>
+                    <Server size={11} />
+                    Server: {s.server}
+                  </div>
                 </div>
-                <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: '#e2e8f0', marginBottom: 4 }}>
-                  {s.title}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.7rem', color: '#475569' }}>
-                  <Server size={11} />
-                  Server: {s.server}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
           <button className="btn-secondary" style={{ width: '100%', marginTop: '1rem', fontSize: '0.75rem', textAlign: 'center' }}>
             Manage Infrastructure
           </button>

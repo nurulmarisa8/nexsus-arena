@@ -56,7 +56,7 @@ export default function AppRouter() {
           <Route path="/player/tournaments" element={<Tournaments />} />
           <Route path="/player/brackets" element={<Brackets />} />
         </Route>
-      </Route>
+      </Route>  
 
       {/* Default redirects */}
       <Route path="/" element={<CatchAll />} />
