@@ -1,79 +1,77 @@
-import React, { useState } from 'react';
-import { NavLink, useLocation, Outlet } from 'react-router-dom';
+import React from 'react';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, Trophy, Swords, Users, Settings, LogOut,
-  Gamepad2, Bell, ChevronDown, Shield
+  LayoutDashboard, Users, Trophy, Settings, CalendarDays,
+  Bell, User, Wallet, Activity, LogOut
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
 
 const navItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', to: '/admin/dashboard' },
+  { icon: LayoutDashboard, label: 'Overview', to: '/admin/dashboard' },
+  { icon: Users, label: 'Participants', to: '/admin/users' },
   { icon: Trophy, label: 'Tournaments', to: '/admin/tournaments' },
-  { icon: Swords, label: 'Match Scoring', to: '/admin/matches' },
-  { icon: Users, label: 'Participants', to: '/admin/participants' },
-  { icon: Settings, label: 'Settings', to: '/admin/settings' },
+  { icon: Activity, label: 'Match Scoring', to: '/admin/matches' },
 ];
+
+const topNav = [];
 
 export default function AdminLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [profileOpen, setProfileOpen] = useState(false);
-
-  const handleLogout = () => {
-    logout();
-    toast.success('Logged out successfully');
-    navigate('/login');
-  };
 
   return (
-    <div className="flex h-screen bg-navy-950 overflow-hidden">
+    <div style={{ display: 'flex', height: '100vh', background: '#060d1f', overflow: 'hidden' }}>
       {/* Sidebar */}
-      <aside className="w-56 flex-shrink-0 bg-navy-900 border-r border-navy-700 flex flex-col">
+      <aside style={{
+        width: 250, flexShrink: 0, background: '#0d1f3c',
+        borderRight: '1px solid #162f62', display: 'flex', flexDirection: 'column'
+      }}>
         {/* Logo */}
-        <div className="px-5 py-5 border-b border-navy-700">
-          <div className="flex items-center gap-2">
-            <div style={{
-              width: 32, height: 32, background: 'linear-gradient(135deg, #f5c518, #d4a800)',
-              borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center'
-            }}>
-              <Gamepad2 size={18} color="#060d1f" />
-            </div>
-            <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: '1.1rem', color: '#f5c518', letterSpacing: '0.05em' }}>
+        <div style={{ padding: '1.5rem', borderBottom: '1px solid #162f62' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 800, fontSize: '1.4rem', color: '#f5c518', letterSpacing: '0.05em' }}>
               NEXUS ARENA
             </span>
           </div>
         </div>
 
-        {/* Profile */}
-        <div className="px-4 py-4 border-b border-navy-700">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        {/* Admin Profile */}
+        <div style={{ padding: '1.5rem', borderBottom: '1px solid #162f62' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{
-              width: 38, height: 38, background: 'linear-gradient(135deg, #162f62, #1a3a7a)',
+              width: 42, height: 42, background: 'linear-gradient(135deg, #162f62, #1a3a7a)',
               borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              border: '1px solid #f5c518', flexShrink: 0
+              border: '2px solid #f5c518', flexShrink: 0, overflow: 'hidden'
             }}>
-              <Shield size={18} color="#f5c518" />
+              <ShieldIcon />
             </div>
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontWeight: 700, fontSize: '0.8rem', color: '#e2e8f0', fontFamily: 'Rajdhani, sans-serif', letterSpacing: '0.05em' }}>
-                {user?.username?.toUpperCase() || 'ADMIN'}
+              <div style={{ fontWeight: 800, fontSize: '0.85rem', color: '#e2e8f0', fontFamily: 'Rajdhani, sans-serif', letterSpacing: '0.05em' }}>
+                ADMINISTRATOR
               </div>
-              <div style={{ fontSize: '0.65rem', color: '#f5c518', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                Command Center
+              <div style={{ fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {user?.email || 'SYSTEM CONTROL'}
               </div>
             </div>
           </div>
         </div>
 
         {/* Nav */}
-        <nav style={{ flex: 1, padding: '1rem 0.75rem', display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <nav style={{ flex: 1, padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', gap: 8 }}>
           {navItems.map(({ icon: Icon, label, to }) => (
             <NavLink
               key={to}
               to={to}
               className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+              style={({ isActive }) => ({
+                padding: '0.75rem 1rem',
+                borderRadius: '0',
+                borderLeft: isActive ? '3px solid #f5c518' : '3px solid transparent',
+                backgroundColor: isActive ? 'rgba(245, 197, 24, 0.1)' : 'transparent',
+                color: isActive ? '#f5c518' : '#94a3b8',
+                display: 'flex', alignItems: 'center', gap: 12,
+                textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600
+              })}
             >
               <Icon size={18} />
               <span>{label}</span>
@@ -81,9 +79,35 @@ export default function AdminLayout() {
           ))}
         </nav>
 
-        {/* Logout */}
-        <div style={{ padding: '0.75rem', borderTop: '1px solid #112650' }}>
-          <button className="nav-item" onClick={handleLogout} style={{ color: '#ff5252' }}>
+        {/* Settings (Bottom) */}
+        <div style={{ padding: '1rem', borderTop: '1px solid #162f62', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <NavLink
+            to="/admin/settings"
+            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+            style={({ isActive }) => ({
+              padding: '0.75rem 1rem',
+              borderRadius: '0',
+              borderLeft: isActive ? '3px solid #f5c518' : '3px solid transparent',
+              backgroundColor: isActive ? 'rgba(245, 197, 24, 0.1)' : 'transparent',
+              color: isActive ? '#f5c518' : '#94a3b8',
+              display: 'flex', alignItems: 'center', gap: 12,
+              textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600
+            })}
+          >
+            <Settings size={18} />
+            <span>Settings</span>
+          </NavLink>
+          <button
+            onClick={logout}
+            style={{
+              width: '100%', padding: '0.75rem 1rem', borderRadius: '0',
+              borderLeft: '3px solid transparent',
+              borderTop: 'none', borderRight: 'none', borderBottom: 'none',
+              background: 'transparent', color: '#94a3b8',
+              display: 'flex', alignItems: 'center', gap: 12,
+              cursor: 'pointer', textAlign: 'left', fontSize: '0.9rem', fontWeight: 600
+            }}
+          >
             <LogOut size={18} />
             <span>Logout</span>
           </button>
@@ -92,32 +116,60 @@ export default function AdminLayout() {
 
       {/* Main */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        {/* Top bar */}
+        {/* Top Nav Bar */}
         <header style={{
-          height: 56, background: '#0a1628', borderBottom: '1px solid #112650',
-          display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-          padding: '0 1.5rem', gap: 16, flexShrink: 0
+          height: 64, background: '#0a1628', borderBottom: '1px solid #162f62',
+          display: 'flex', alignItems: 'center', padding: '0 2rem', gap: 32, flexShrink: 0
         }}>
-          <button style={{
-            background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer',
-            padding: 6, borderRadius: 6, display: 'flex', alignItems: 'center',
-            transition: 'color 0.15s'
-          }}>
-            <Bell size={18} />
-          </button>
-          <div style={{ width: 1, height: 20, background: '#112650' }} />
-          <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-            ADMIN • {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+          <div style={{ display: 'flex', gap: 24, flex: 1 }}>
+            {topNav.map(({ label, to }) => (
+              <NavLink
+                key={label}
+                to={to}
+                style={({ isActive }) => ({
+                  fontSize: '0.85rem', fontWeight: 700, letterSpacing: '0.06em',
+                  fontFamily: 'Rajdhani, sans-serif',
+                  color: isActive ? '#f5c518' : '#94a3b8',
+                  textDecoration: 'none', padding: '1.25rem 0',
+                  borderBottom: isActive ? '3px solid #f5c518' : '3px solid transparent',
+                  transition: 'color 0.15s, border-color 0.15s',
+                  display: 'flex', alignItems: 'center', height: '100%'
+                })}
+              >
+                {label}
+              </NavLink>
+            ))}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <button style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 6 }}>
+              <Bell size={18} />
+            </button>
+            <div style={{
+              width: 32, height: 32, background: 'linear-gradient(135deg, #162f62, #1a3a7a)',
+              borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: '2px solid #112650', cursor: 'pointer'
+            }}>
+              <ShieldIcon small />
+            </div>
           </div>
         </header>
 
         {/* Content */}
         <main style={{ flex: 1, overflow: 'auto', background: '#060d1f' }}>
-          <div className="animate-fade-in">
+          <div className="animate-fade-in" style={{ height: '100%' }}>
             <Outlet />
           </div>
         </main>
       </div>
     </div>
+  );
+}
+
+function ShieldIcon({ small }) {
+  const size = small ? 16 : 24;
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#f5c518" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
   );
 }

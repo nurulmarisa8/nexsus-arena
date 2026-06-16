@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Gamepad2, Eye, EyeOff, Loader2, Swords, Trophy, Users } from 'lucide-react';
+import { Eye, EyeOff, Loader2, AtSign, Lock, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -10,6 +10,7 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [savePassword, setSavePassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,188 +40,164 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh', background: '#060d1f', display: 'flex',
-      backgroundImage: 'radial-gradient(ellipse at 20% 50%, rgba(22,47,98,0.3) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(245,197,24,0.05) 0%, transparent 40%)',
+    <div className="auth-bg-navy" style={{
+      minHeight: '100vh', 
+      display: 'flex', 
+      flexDirection: 'column',
+      alignItems: 'center', 
+      justifyContent: 'center',
+      padding: '2rem',
+      position: 'relative',
+      overflow: 'hidden'
     }}>
-      {/* Left Panel — Branding */}
-      <div style={{
-        flex: 1, display: 'none', flexDirection: 'column', justifyContent: 'center',
-        padding: '3rem 4rem', borderRight: '1px solid #112650',
-        background: 'linear-gradient(135deg, #0a1628 0%, #0d1f3c 100%)',
-        position: 'relative', overflow: 'hidden',
-      }}
-        className="lg-flex"
-      >
-        {/* Grid overlay */}
-        <div style={{
-          position: 'absolute', inset: 0, opacity: 0.4,
-          backgroundImage: 'linear-gradient(rgba(79,195,247,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(79,195,247,0.05) 1px, transparent 1px)',
-          backgroundSize: '40px 40px',
-        }} />
-
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          {/* Logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '3rem' }}>
-            <div style={{
-              width: 48, height: 48, background: 'linear-gradient(135deg, #f5c518, #d4a800)',
-              borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 0 20px rgba(245,197,24,0.3)'
-            }}>
-              <Gamepad2 size={26} color="#060d1f" />
-            </div>
-            <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: '1.6rem', color: '#f5c518', letterSpacing: '0.05em' }}>
-              NEXUS ARENA
-            </span>
-          </div>
-
-          <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2.5rem', fontWeight: 700, color: '#e2e8f0', lineHeight: 1.2, marginBottom: '1rem' }}>
-            The Ultimate<br />
-            <span style={{ color: '#f5c518' }}>E-Sports</span><br />
-            Battle Ground
-          </h1>
-          <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: 1.7, maxWidth: 340 }}>
-            Manage tournaments, track matches, and compete with the best players across all regions.
-          </p>
-
-          {/* Stats */}
-          <div style={{ display: 'flex', gap: '2rem', marginTop: '3rem' }}>
-            {[
-              { icon: Trophy, value: '256+', label: 'Tournaments' },
-              { icon: Users, value: '8,941', label: 'Players' },
-              { icon: Swords, value: '1,432', label: 'Matches' },
-            ].map(({ icon: Icon, value, label }) => (
-              <div key={label}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                  <Icon size={14} color="#f5c518" />
-                  <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.4rem', fontWeight: 700, color: '#e2e8f0' }}>{value}</span>
-                </div>
-                <div style={{ fontSize: '0.7rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+      
+      {/* Background decoration lines */}
+      <div style={{ position: 'absolute', left: '4rem', top: '50%', transform: 'translateY(-50%) rotate(-90deg)', transformOrigin: 'left center', fontSize: '0.6rem', color: '#162f62', letterSpacing: '0.2em', whiteSpace: 'nowrap', fontFamily: 'Rajdhani, sans-serif' }}>
+        SYSTEM STATUS : OPTIMAL
+      </div>
+      <div style={{ position: 'absolute', right: '4rem', top: '50%', transform: 'translateY(-50%) rotate(90deg)', transformOrigin: 'right center', fontSize: '0.6rem', color: '#162f62', letterSpacing: '0.2em', whiteSpace: 'nowrap', fontFamily: 'Rajdhani, sans-serif' }}>
+        ENCRYPTED UPLINK
       </div>
 
-      {/* Right Panel — Login Form */}
-      <div style={{
-        width: '100%', maxWidth: 480, display: 'flex', flexDirection: 'column',
-        justifyContent: 'center', padding: '2rem 2.5rem',
-      }}>
-        {/* Mobile logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '2.5rem' }}>
-          <div style={{
-            width: 36, height: 36, background: 'linear-gradient(135deg, #f5c518, #d4a800)',
-            borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Gamepad2 size={20} color="#060d1f" />
-          </div>
-          <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: '1.2rem', color: '#f5c518', letterSpacing: '0.05em' }}>
+      <div style={{ width: '100%', maxWidth: 420, position: 'relative', zIndex: 10 }}>
+        
+        {/* Branding Header */}
+        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+          <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2rem', fontWeight: 800, color: '#f5c518', letterSpacing: '0.05em', fontStyle: 'italic', margin: 0 }}>
             NEXUS ARENA
-          </span>
-        </div>
-
-        <h2 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.75rem', fontWeight: 700, color: '#e2e8f0', marginBottom: '0.5rem' }}>
-          Sign In
-        </h2>
-        <p style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '2rem' }}>
-          Access your command center
-        </p>
-
-        {/* Quick Login Buttons */}
-        <div style={{ display: 'flex', gap: 10, marginBottom: '1.5rem' }}>
-          <button type="button" onClick={() => quickLogin('admin')} className="btn-secondary" style={{ flex: 1, fontSize: '0.75rem', padding: '0.5rem' }}>
-            🛡 Demo Admin
-          </button>
-          <button type="button" onClick={() => quickLogin('player')} className="btn-secondary" style={{ flex: 1, fontSize: '0.75rem', padding: '0.5rem' }}>
-            🎮 Demo Player
-          </button>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '1.5rem' }}>
-          <div style={{ flex: 1, height: 1, background: '#112650' }} />
-          <span style={{ fontSize: '0.7rem', color: '#475569', letterSpacing: '0.08em', textTransform: 'uppercase' }}>or sign in manually</span>
-          <div style={{ flex: 1, height: 1, background: '#112650' }} />
-        </div>
-
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div>
-            <label className="label">Email or Username</label>
-            <input
-              className={`input-field ${error ? 'error' : ''}`}
-              type="text"
-              placeholder="admin@nexusarena.gg"
-              value={form.email}
-              onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
-              required
-              id="login-email"
-            />
+          </h1>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginTop: '0.25rem' }}>
+            <div style={{ height: 1, width: 40, background: '#f5c518' }} />
+            <span style={{ fontSize: '0.7rem', color: '#64748b', letterSpacing: '0.15em', fontWeight: 600 }}>VANGUARD DIVISION</span>
+            <div style={{ height: 1, width: 40, background: '#f5c518' }} />
           </div>
+        </div>
 
-          <div>
-            <label className="label">Password</label>
-            <div style={{ position: 'relative' }}>
-              <input
-                className={`input-field ${error ? 'error' : ''}`}
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                value={form.password}
-                onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
-                required
-                id="login-password"
-                style={{ paddingRight: '2.5rem' }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(p => !p)}
+        {/* Login Box */}
+        <div className="auth-box" style={{ padding: '2.5rem', borderRadius: '4px' }}>
+          <h2 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.75rem', fontWeight: 700, color: '#ffffff', marginBottom: '0.25rem' }}>
+            LOGIN
+          </h2>
+          <p style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '2rem' }}>
+            Initialize session for competitive access.
+          </p>
+
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {/* Email Field */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.375rem' }}>
+                <label className="label" style={{ margin: 0, color: '#e2e8f0' }}>EMAIL ADDRESS</label>
+                <span style={{ fontSize: '0.65rem', color: '#475569', letterSpacing: '0.05em', fontWeight: 600 }}>REQUIRED</span>
+              </div>
+              <div className="input-icon-wrapper">
+                <AtSign />
+                <input
+                  className={`input-field ${error ? 'error' : ''}`}
+                  type="email"
+                  placeholder="commander@nexus.gg"
+                  value={form.email}
+                  onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+                  required
+                  id="login-email"
+                />
+              </div>
+            </div>
+
+            {/* Password Field */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.375rem' }}>
+                <label className="label" style={{ margin: 0, color: '#e2e8f0' }}>PASSWORD</label>
+                <a href="#" style={{ fontSize: '0.65rem', color: '#f5c518', textDecoration: 'none', letterSpacing: '0.05em', fontWeight: 600 }}>RECOVER ACCESS</a>
+              </div>
+              <div className="input-icon-wrapper">
+                <Lock />
+                <input
+                  className={`input-field ${error ? 'error' : ''}`}
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={form.password}
+                  onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
+                  required
+                  id="login-password"
+                  style={{ paddingRight: '2.5rem' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(p => !p)}
+                  style={{
+                    position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', color: '#475569', cursor: 'pointer', padding: 0,
+                  }}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Save Password Checkbox */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '-0.5rem' }}>
+              <input 
+                type="checkbox" 
+                id="save-password" 
+                checked={savePassword}
+                onChange={(e) => setSavePassword(e.target.checked)}
                 style={{
-                  position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
-                  background: 'none', border: 'none', color: '#475569', cursor: 'pointer', padding: 0,
-                }}
-              >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
+                  accentColor: '#f5c518',
+                  width: '14px',
+                  height: '14px',
+                  cursor: 'pointer',
+                  background: '#0a1628',
+                  border: '1px solid #162f62'
+                }} 
+              />
+              <label htmlFor="save-password" style={{ fontSize: '0.75rem', color: '#64748b', cursor: 'pointer' }}>
+                Save Password
+              </label>
             </div>
-          </div>
 
-          {error && (
-            <div style={{
-              background: 'rgba(255,82,82,0.1)', border: '1px solid rgba(255,82,82,0.3)',
-              borderRadius: 6, padding: '0.625rem 1rem', color: '#ff5252', fontSize: '0.8rem',
-            }}>
-              ⚠ {error}
-            </div>
-          )}
+            {error && (
+              <div style={{
+                background: 'rgba(255,82,82,0.1)', border: '1px solid rgba(255,82,82,0.3)',
+                borderRadius: 4, padding: '0.5rem 0.75rem', color: '#ff5252', fontSize: '0.8rem',
+              }}>
+                {error}
+              </div>
+            )}
 
-          <button
-            type="submit"
-            className="btn-primary"
-            disabled={loading}
-            style={{ width: '100%', padding: '0.75rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-            id="login-submit"
-          >
-            {loading ? <><Loader2 size={16} className="animate-spin" /> Authenticating...</> : 'Sign In →'}
-          </button>
-        </form>
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={loading}
+              style={{ width: '100%', padding: '0.85rem', fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: '0.5rem', color: '#060d1f' }}
+              id="login-submit"
+            >
+              {loading ? <Loader2 size={18} className="animate-spin" /> : 'LOGIN'} 
+              {!loading && <ArrowRight size={18} />}
+            </button>
+          </form>
 
-        <p style={{ marginTop: '1.5rem', fontSize: '0.8rem', color: '#64748b', textAlign: 'center' }}>
-          Don't have an account?{' '}
-          <Link to="/register" style={{ color: '#f5c518', textDecoration: 'none', fontWeight: 600 }}>
-            Register Now
-          </Link>
-        </p>
+        </div>
 
-        {/* Hint */}
-        <div style={{
-          marginTop: '2rem', padding: '0.875rem', background: '#0d1f3c',
-          border: '1px solid #112650', borderRadius: 8,
-        }}>
-          <p style={{ fontSize: '0.7rem', color: '#475569', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Demo Credentials</p>
-          <div style={{ fontSize: '0.75rem', color: '#64748b', lineHeight: 1.8 }}>
-            <div>Admin: <span style={{ color: '#94a3b8' }}>admin@nexusarena.gg / admin123</span></div>
-            <div>Player: <span style={{ color: '#94a3b8' }}>player@nexusarena.gg / player123</span></div>
+        {/* Footer Links */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem', padding: '0 0.5rem' }}>
+          <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0 }}>
+            New recruit?{' '}
+            <Link to="/register" style={{ color: '#f5c518', textDecoration: 'none', fontWeight: 600 }}>
+              Register Account
+            </Link>
+          </p>
+          <div style={{ display: 'flex', gap: '1rem', fontSize: '0.65rem', color: '#475569', letterSpacing: '0.1em' }}>
+            <Link to="#" style={{ color: 'inherit', textDecoration: 'none' }}>TERMS</Link>
+            <Link to="#" style={{ color: 'inherit', textDecoration: 'none' }}>PRIVACY</Link>
           </div>
         </div>
+
+        {/* Development Quick Login Options (Hidden in production mockup, but kept for usability) */}
+        <div style={{ marginTop: '3rem', opacity: 0.5, borderTop: '1px solid #162f62', paddingTop: '1rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+          <button onClick={() => quickLogin('admin')} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.7rem', cursor: 'pointer' }}>[ Demo Admin ]</button>
+          <button onClick={() => quickLogin('player')} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.7rem', cursor: 'pointer' }}>[ Demo Player ]</button>
+        </div>
+
       </div>
     </div>
   );

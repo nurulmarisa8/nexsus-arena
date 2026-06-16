@@ -1,399 +1,144 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Download, Plus, Search, Filter, ChevronLeft, ChevronRight, Gamepad2, Zap, Shield, AlertTriangle, Loader2, X } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { teamsAPI, usersAPI } from '../../services/api';
-
-const statusMap = {
-  verified: { label: 'VERIFIED', cls: 'badge-verified' },
-  pending: { label: 'PENDING', cls: 'badge-pending' },
-  suspended: { label: 'SUSPENDED', cls: 'badge-suspended' },
-};
-
-const regions = ['All Regions', 'NA East', 'NA West', 'EU West', 'EU East', 'Asia Pacific'];
-const statuses = ['All Statuses', 'verified', 'pending', 'suspended'];
-const statusChangeOptions = ['verified', 'pending', 'suspended'];
+import React, { useState } from 'react';
+import { Download, Plus, Search, Filter, ChevronLeft, ChevronRight, Gamepad2, Shield, Zap } from 'lucide-react';
 
 export default function ParticipantsMgmt() {
   const [activeTab, setActiveTab] = useState('Teams');
-  const [search, setSearch] = useState('');
-  const [regionFilter, setRegionFilter] = useState('All Regions');
-  const [statusFilter, setStatusFilter] = useState('All Statuses');
-  const [page, setPage] = useState(1);
-  const perPage = 5;
 
-  const [teamsData, setTeamsData] = useState([]);
-  const [usersData, setUsersData] = useState([]);
-  const [loadingTeams, setLoadingTeams] = useState(true);
-  const [loadingUsers, setLoadingUsers] = useState(true);
+  const teams = [
+    { name: 'Void Walkers', captain: '@ShadowStep', region: 'NA East', wins: 142, status: 'VERIFIED', icon: Gamepad2 },
+    { name: 'Crimson Surge', captain: '@RedViper', region: 'EU West', wins: 89, status: 'VERIFIED', icon: Zap },
+    { name: 'Aegis Protocol', captain: '@TitanBlock', region: 'Asia Pacific', wins: 12, status: 'PENDING', icon: Shield },
+    { name: 'Neon Syndicate', captain: '@GlitchUser', region: 'NA West', wins: 205, status: 'SUSPENDED', icon: Gamepad2 },
+  ];
 
-  // Status dropdown state
-  const [manageDropdown, setManageDropdown] = useState(null);
-  const dropdownRef = useRef(null);
-
-  useEffect(() => {
-    const fetchTeams = async () => {
-      try {
-        const res = await teamsAPI.list();
-        const data = Array.isArray(res.data) ? res.data : (res.data.teams || res.data.data || []);
-        setTeamsData(data.map(t => ({
-          id: t.id,
-          name: t.name || '',
-          icon: t.icon || t.logo || '🎮',
-          captain: t.captain || t.captain_name || (t.captain_username ? `@${t.captain_username}` : ''),
-          region: t.region || '',
-          wins: t.wins ?? t.total_wins ?? 0,
-          status: t.status || 'pending',
-        })));
-      } catch (err) {
-        toast.error('Failed to load teams');
-      } finally {
-        setLoadingTeams(false);
-      }
-    };
-
-    const fetchUsers = async () => {
-      try {
-        const res = await usersAPI.list();
-        const data = Array.isArray(res.data) ? res.data : (res.data.users || res.data.data || []);
-        setUsersData(data.map(u => ({
-          id: u.id,
-          username: u.username || '',
-          email: u.email || '',
-          region: u.region || '',
-          team: u.team || u.team_name || '',
-          joined: u.joined || u.created_at || u.joined_at || '',
-          status: u.status || 'pending',
-        })));
-      } catch (err) {
-        toast.error('Failed to load users');
-      } finally {
-        setLoadingUsers(false);
-      }
-    };
-
-    fetchTeams();
-    fetchUsers();
-  }, []);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setManageDropdown(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const filterData = (data) => data.filter(item => {
-    const searchLower = search.toLowerCase();
-    const matchSearch = !search ||
-      (item.name || item.username || '').toLowerCase().includes(searchLower) ||
-      (item.captain || item.email || '').toLowerCase().includes(searchLower);
-    const matchRegion = regionFilter === 'All Regions' || item.region === regionFilter;
-    const matchStatus = statusFilter === 'All Statuses' || item.status === statusFilter;
-    return matchSearch && matchRegion && matchStatus;
-  });
-
-  const teams = filterData(teamsData);
-  const users = filterData(usersData);
-  const currentData = activeTab === 'Teams' ? teams : users;
-  const totalPages = Math.ceil(currentData.length / perPage);
-  const paginated = currentData.slice((page - 1) * perPage, page * perPage);
-
-  const isLoading = activeTab === 'Teams' ? loadingTeams : loadingUsers;
-
-  const handleManage = (item) => {
-    setManageDropdown(manageDropdown === item.id ? null : item.id);
-  };
-
-  const handleStatusChange = async (item, newStatus) => {
-    try {
-      if (activeTab === 'Teams') {
-        await teamsAPI.updateStatus(item.id, newStatus);
-        setTeamsData(prev => prev.map(t => t.id === item.id ? { ...t, status: newStatus } : t));
-      } else {
-        await usersAPI.updateStatus(item.id, newStatus);
-        setUsersData(prev => prev.map(u => u.id === item.id ? { ...u, status: newStatus } : u));
-      }
-      toast.success(`Status updated to ${newStatus}`);
-    } catch (err) {
-      toast.error('Failed to update status');
-    }
-    setManageDropdown(null);
-  };
-
-  const handleExport = async () => {
-    try {
-      const res = await usersAPI.exportCSV();
-      const blob = new Blob([res.data], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'users_export.csv');
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      toast.success('CSV exported successfully!');
-    } catch (err) {
-      toast.error('Failed to export CSV');
+  const getStatusStyle = (status) => {
+    switch (status) {
+      case 'VERIFIED': return { background: 'rgba(79, 195, 247, 0.15)', color: '#4fc3f7', border: '1px solid rgba(79, 195, 247, 0.3)' };
+      case 'PENDING': return { background: 'rgba(245, 197, 24, 0.15)', color: '#f5c518', border: '1px solid rgba(245, 197, 24, 0.3)' };
+      case 'SUSPENDED': return { background: 'rgba(225, 29, 72, 0.15)', color: '#ff5252', border: '1px solid rgba(225, 29, 72, 0.3)' };
+      default: return { background: '#112650', color: '#94a3b8', border: '1px solid #162f62' };
     }
   };
 
   return (
-    <div style={{ padding: '2rem', minHeight: '100%' }}>
+    <div style={{ padding: '2.5rem', minHeight: '100%', maxWidth: 1200, margin: '0 auto' }}>
+      
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1.75rem', flexWrap: 'wrap', gap: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem' }}>
         <div>
-          <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.75rem', fontWeight: 700, color: '#e2e8f0', marginBottom: 4 }}>
+          <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2.25rem', fontWeight: 800, color: '#ffffff', letterSpacing: '0.02em', marginBottom: '0.25rem' }}>
             Manage Platform Participants
           </h1>
-          <p style={{ color: '#64748b', fontSize: '0.85rem' }}>View, edit, and moderate teams and users across all regions.</p>
+          <p style={{ color: '#94a3b8', fontSize: '0.9rem', letterSpacing: '0.02em' }}>
+            View, edit, and moderate teams and users across all regions.
+          </p>
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button className="btn-secondary" onClick={handleExport} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Download size={14} />
-            Export CSV
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <button style={{ background: '#0a1628', border: '1px solid #162f62', color: '#e2e8f0', padding: '0.6rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+            <Download size={14} /> Export CSV
           </button>
-          <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Plus size={14} />
-            Add New
+          <button className="btn-primary" style={{ padding: '0.6rem 1.25rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Plus size={16} /> Add New
           </button>
         </div>
       </div>
 
-      {/* Card */}
-      <div className="card">
-        {/* Tabs */}
-        <div style={{ display: 'flex', padding: '0 1.25rem', borderBottom: '1px solid #112650', gap: 0 }}>
-          {['Teams', 'Users'].map(tab => (
-            <button key={tab} onClick={() => { setActiveTab(tab); setPage(1); }} style={{
-              padding: '0.875rem 1.25rem', border: 'none', cursor: 'pointer', background: 'none',
-              fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: '0.85rem', letterSpacing: '0.05em',
+      {/* Tabs */}
+      <div style={{ display: 'flex', gap: '2rem', borderBottom: '1px solid #162f62', marginBottom: '2rem' }}>
+        {['Teams', 'Users'].map(tab => (
+          <button 
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            style={{ 
+              background: 'none', border: 'none', padding: '0 0 0.75rem 0', 
+              fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer',
               color: activeTab === tab ? '#f5c518' : '#64748b',
-              borderBottom: activeTab === tab ? '2px solid #f5c518' : '2px solid transparent',
-              transition: 'all 0.15s', marginBottom: -1,
-            }}>
-              {tab}
-            </button>
-          ))}
-        </div>
+              borderBottom: activeTab === tab ? '3px solid #f5c518' : '3px solid transparent'
+            }}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
 
-        {/* Filters */}
-        <div style={{ display: 'flex', gap: 12, padding: '1rem 1.25rem', alignItems: 'center', flexWrap: 'wrap', borderBottom: '1px solid #112650' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#475569' }}>
-            <Filter size={14} />
+      {/* Main Content Area */}
+      <div style={{ background: '#0a1628', border: '1px solid #162f62', borderRadius: 4 }}>
+        
+        {/* Toolbar */}
+        <div style={{ padding: '1rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #112650' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <Filter size={16} color="#64748b" />
+            <select style={{ background: '#060d1f', border: '1px solid #162f62', color: '#e2e8f0', padding: '0.5rem 2rem 0.5rem 1rem', fontSize: '0.8rem', outline: 'none', appearance: 'none', cursor: 'pointer' }}>
+              <option>All Regions</option>
+              <option>NA East</option>
+              <option>EU West</option>
+            </select>
+            <select style={{ background: '#060d1f', border: '1px solid #162f62', color: '#e2e8f0', padding: '0.5rem 2rem 0.5rem 1rem', fontSize: '0.8rem', outline: 'none', appearance: 'none', cursor: 'pointer' }}>
+              <option>All Statuses</option>
+              <option>Verified</option>
+              <option>Pending</option>
+            </select>
           </div>
-          <select
-            className="input-field"
-            style={{ width: 'auto', padding: '0.4rem 2rem 0.4rem 0.75rem', fontSize: '0.8rem' }}
-            value={regionFilter}
-            onChange={e => { setRegionFilter(e.target.value); setPage(1); }}
-          >
-            {regions.map(r => <option key={r} value={r}>{r}</option>)}
-          </select>
-          <select
-            className="input-field"
-            style={{ width: 'auto', padding: '0.4rem 2rem 0.4rem 0.75rem', fontSize: '0.8rem' }}
-            value={statusFilter}
-            onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
-          >
-            {statuses.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
-          </select>
-          <div style={{ flex: 1, minWidth: 200, position: 'relative' }}>
-            <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#475569' }} />
-            <input
-              className="input-field"
-              placeholder="Search name or ID..."
-              value={search}
-              onChange={e => { setSearch(e.target.value); setPage(1); }}
-              style={{ paddingLeft: '2.25rem', fontSize: '0.8rem' }}
-              id="participants-search"
-            />
+          <div style={{ position: 'relative' }}>
+            <Search size={14} color="#64748b" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
+            <input type="text" placeholder="Search name or ID..." style={{ background: '#060d1f', border: '1px solid #162f62', color: '#e2e8f0', padding: '0.5rem 1rem 0.5rem 2.25rem', fontSize: '0.8rem', width: 260, outline: 'none' }} />
           </div>
         </div>
 
         {/* Table */}
-        <div style={{ overflowX: 'auto' }}>
-          {isLoading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem 0' }}>
-              <Loader2 size={28} className="animate-spin" style={{ color: '#475569' }} />
-            </div>
-          ) : activeTab === 'Teams' ? (
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Team Name</th>
-                  <th>Captain</th>
-                  <th>Region</th>
-                  <th>Total Wins</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginated.map(team => {
-                  const st = statusMap[team.status] || statusMap.pending;
-                  return (
-                    <tr key={team.id}>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <div style={{ width: 32, height: 32, background: '#112650', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', flexShrink: 0 }}>
-                            {team.icon}
-                          </div>
-                          <span style={{ fontWeight: 700, color: '#e2e8f0', fontFamily: 'Rajdhani, sans-serif', fontSize: '0.9rem' }}>
-                            {team.name}
-                          </span>
-                        </div>
-                      </td>
-                      <td style={{ color: '#94a3b8', fontSize: '0.85rem' }}>{team.captain}</td>
-                      <td style={{ color: '#64748b', fontSize: '0.85rem' }}>{team.region}</td>
-                      <td>
-                        <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: '#e2e8f0', fontSize: '1rem' }}>{team.wins}</span>
-                      </td>
-                      <td><span className={`badge ${st.cls}`}>{st.label}</span></td>
-                      <td>
-                        <div style={{ position: 'relative' }}>
-                          <button
-                            className="btn-secondary"
-                            style={{ fontSize: '0.75rem', padding: '0.35rem 0.875rem', color: '#f5c518', borderColor: 'rgba(245,197,24,0.3)' }}
-                            onClick={() => handleManage(team)}
-                            id={`manage-team-${team.id}`}
-                          >
-                            Manage
-                          </button>
-                          {manageDropdown === team.id && (
-                            <div ref={dropdownRef} style={{
-                              position: 'absolute', top: '100%', right: 0, marginTop: 4, zIndex: 50,
-                              background: '#0d1f3c', border: '1px solid #162f62', borderRadius: 8,
-                              padding: '0.5rem 0', minWidth: 150, boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-                            }}>
-                              {statusChangeOptions.map(s => (
-                                <button
-                                  key={s}
-                                  onClick={() => handleStatusChange(team, s)}
-                                  style={{
-                                    display: 'block', width: '100%', padding: '0.5rem 1rem', background: 'none',
-                                    border: 'none', color: team.status === s ? '#f5c518' : '#94a3b8',
-                                    fontSize: '0.8rem', textAlign: 'left', cursor: 'pointer',
-                                    fontFamily: 'Rajdhani, sans-serif', fontWeight: team.status === s ? 700 : 500,
-                                  }}
-                                  onMouseEnter={e => e.target.style.background = 'rgba(245,197,24,0.08)'}
-                                  onMouseLeave={e => e.target.style.background = 'none'}
-                                >
-                                  {s.charAt(0).toUpperCase() + s.slice(1)}
-                                  {team.status === s && ' ✓'}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          ) : (
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Username</th>
-                  <th>Email</th>
-                  <th>Region</th>
-                  <th>Team</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginated.map(user => {
-                  const st = statusMap[user.status] || statusMap.pending;
-                  return (
-                    <tr key={user.id}>
-                      <td>
-                        <span style={{ fontWeight: 700, color: '#e2e8f0', fontFamily: 'Rajdhani, sans-serif' }}>
-                          @{user.username}
-                        </span>
-                      </td>
-                      <td style={{ color: '#64748b', fontSize: '0.8rem' }}>{user.email}</td>
-                      <td style={{ color: '#64748b', fontSize: '0.8rem' }}>{user.region}</td>
-                      <td style={{ color: '#94a3b8', fontSize: '0.85rem' }}>{user.team || '—'}</td>
-                      <td><span className={`badge ${st.cls}`}>{st.label}</span></td>
-                      <td>
-                        <div style={{ position: 'relative' }}>
-                          <button
-                            className="btn-secondary"
-                            style={{ fontSize: '0.75rem', padding: '0.35rem 0.875rem', color: '#f5c518', borderColor: 'rgba(245,197,24,0.3)' }}
-                            onClick={() => handleManage(user)}
-                            id={`manage-user-${user.id}`}
-                          >
-                            Manage
-                          </button>
-                          {manageDropdown === user.id && (
-                            <div ref={dropdownRef} style={{
-                              position: 'absolute', top: '100%', right: 0, marginTop: 4, zIndex: 50,
-                              background: '#0d1f3c', border: '1px solid #162f62', borderRadius: 8,
-                              padding: '0.5rem 0', minWidth: 150, boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-                            }}>
-                              {statusChangeOptions.map(s => (
-                                <button
-                                  key={s}
-                                  onClick={() => handleStatusChange(user, s)}
-                                  style={{
-                                    display: 'block', width: '100%', padding: '0.5rem 1rem', background: 'none',
-                                    border: 'none', color: user.status === s ? '#f5c518' : '#94a3b8',
-                                    fontSize: '0.8rem', textAlign: 'left', cursor: 'pointer',
-                                    fontFamily: 'Rajdhani, sans-serif', fontWeight: user.status === s ? 700 : 500,
-                                  }}
-                                  onMouseEnter={e => e.target.style.background = 'rgba(245,197,24,0.08)'}
-                                  onMouseLeave={e => e.target.style.background = 'none'}
-                                >
-                                  {s.charAt(0).toUpperCase() + s.slice(1)}
-                                  {user.status === s && ' ✓'}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ borderBottom: '1px solid #112650' }}>
+              <th style={{ textAlign: 'left', padding: '1rem 1.5rem', fontSize: '0.65rem', color: '#64748b', letterSpacing: '0.1em', fontWeight: 600 }}>TEAM NAME</th>
+              <th style={{ textAlign: 'left', padding: '1rem 1.5rem', fontSize: '0.65rem', color: '#64748b', letterSpacing: '0.1em', fontWeight: 600 }}>CAPTAIN</th>
+              <th style={{ textAlign: 'left', padding: '1rem 1.5rem', fontSize: '0.65rem', color: '#64748b', letterSpacing: '0.1em', fontWeight: 600 }}>REGION</th>
+              <th style={{ textAlign: 'center', padding: '1rem 1.5rem', fontSize: '0.65rem', color: '#64748b', letterSpacing: '0.1em', fontWeight: 600 }}>TOTAL WINS</th>
+              <th style={{ textAlign: 'center', padding: '1rem 1.5rem', fontSize: '0.65rem', color: '#64748b', letterSpacing: '0.1em', fontWeight: 600 }}>STATUS</th>
+              <th style={{ textAlign: 'right', padding: '1rem 1.5rem', fontSize: '0.65rem', color: '#64748b', letterSpacing: '0.1em', fontWeight: 600 }}>ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {teams.map((team, idx) => (
+              <tr key={idx} style={{ borderBottom: '1px solid #112650' }}>
+                <td style={{ padding: '1.25rem 1.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{ background: '#060d1f', border: '1px solid #162f62', padding: '0.4rem', borderRadius: 4, display: 'flex' }}>
+                      <team.icon size={16} color="#94a3b8" />
+                    </div>
+                    <span style={{ color: '#e2e8f0', fontWeight: 600, fontSize: '0.9rem' }}>{team.name}</span>
+                  </div>
+                </td>
+                <td style={{ padding: '1.25rem 1.5rem', fontSize: '0.85rem', color: '#94a3b8' }}>{team.captain}</td>
+                <td style={{ padding: '1.25rem 1.5rem', fontSize: '0.85rem', color: '#94a3b8' }}>{team.region}</td>
+                <td style={{ padding: '1.25rem 1.5rem', textAlign: 'center', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.25rem', fontWeight: 700, color: '#ffffff' }}>
+                  {team.wins}
+                </td>
+                <td style={{ padding: '1.25rem 1.5rem', textAlign: 'center' }}>
+                  <span style={{ ...getStatusStyle(team.status), padding: '0.2rem 0.6rem', fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.05em', borderRadius: 2 }}>
+                    {team.status}
+                  </span>
+                </td>
+                <td style={{ padding: '1.25rem 1.5rem', textAlign: 'right' }}>
+                  <button style={{ background: 'transparent', border: '1px solid #f5c518', color: '#f5c518', padding: '0.4rem 1rem', fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer', borderRadius: 2 }}>
+                    Manage
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* Footer */}
+        <div style={{ padding: '1rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+            Showing 1 to 4 of 24 entries
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><ChevronLeft size={16} /></button>
+            <button style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><ChevronRight size={16} /></button>
+          </div>
         </div>
 
-        {/* Pagination */}
-        {!isLoading && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.875rem 1.25rem', borderTop: '1px solid #112650' }}>
-            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-              {currentData.length > 0
-                ? `Showing ${((page - 1) * perPage) + 1} to ${Math.min(page * perPage, currentData.length)} of ${currentData.length} entries`
-                : 'No entries found'
-              }
-            </span>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                disabled={page === 1}
-                style={{ padding: '0.35rem 0.6rem', background: '#0a1628', border: '1px solid #112650', borderRadius: 6, color: page === 1 ? '#475569' : '#94a3b8', cursor: page === 1 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center' }}
-              >
-                <ChevronLeft size={14} />
-              </button>
-              <button
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages || totalPages === 0}
-                style={{ padding: '0.35rem 0.6rem', background: '#0a1628', border: '1px solid #112650', borderRadius: 6, color: (page === totalPages || totalPages === 0) ? '#475569' : '#94a3b8', cursor: (page === totalPages || totalPages === 0) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center' }}
-              >
-                <ChevronRight size={14} />
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

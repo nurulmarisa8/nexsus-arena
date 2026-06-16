@@ -1,0 +1,162 @@
+import React from 'react';
+import { User, Shield, Bell, Mail } from 'lucide-react';
+import toast from 'react-hot-toast';
+
+export default function PlayerSettings() {
+  const handleSave = (e) => {
+    e.preventDefault();
+    toast.success('Profile updated successfully!');
+  };
+
+  return (
+    <div style={{ padding: '2.5rem', minHeight: '100%', maxWidth: 1200 }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2.5rem' }}>
+        <div>
+          <div style={{ fontSize: '0.65rem', color: '#f5c518', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.5rem', fontFamily: 'Rajdhani, sans-serif' }}>
+            COMMAND CENTER / PROFILE
+          </div>
+          <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2.25rem', fontWeight: 800, color: '#ffffff', letterSpacing: '0.02em', lineHeight: 1 }}>
+            USER SETTINGS
+          </h1>
+        </div>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <button className="btn-secondary" style={{ padding: '0.6rem 1.5rem', fontSize: '0.75rem', borderRadius: 0, borderColor: '#162f62', color: '#94a3b8' }}>
+            DISCARD
+          </button>
+          <button className="btn-primary" onClick={handleSave} style={{ padding: '0.6rem 1.5rem', fontSize: '0.75rem', borderRadius: 0 }}>
+            SAVE CHANGES
+          </button>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '2rem', alignItems: 'start' }}>
+        
+        {/* Left Column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          
+          {/* Account Information */}
+          <div style={{ border: '2px solid #4fc3f7', padding: '0.5rem', background: '#0a1628' }}>
+            <div style={{ border: '1px dashed #4fc3f7', padding: '1.5rem' }}>
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#ffffff', fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem', fontFamily: 'Rajdhani, sans-serif' }}>
+                <User size={20} color="#f5c518" />
+                Account Information
+              </h2>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div style={{ borderBottom: '1px dashed #162f62', paddingBottom: '1rem' }}>
+                    <label style={{ display: 'block', fontSize: '0.65rem', color: '#94a3b8', letterSpacing: '0.1em', marginBottom: '0.5rem', textTransform: 'uppercase' }}>GAMERTAG</label>
+                    <input type="text" defaultValue="VANGUARD_STRIKER" style={{ width: '100%', background: '#060d1f', border: '1px solid #162f62', color: '#e2e8f0', padding: '0.75rem 1rem', fontSize: '0.85rem' }} />
+                  </div>
+                  <div style={{ borderBottom: '1px dashed #162f62', paddingBottom: '1rem' }}>
+                    <label style={{ display: 'block', fontSize: '0.65rem', color: '#94a3b8', letterSpacing: '0.1em', marginBottom: '0.5rem', textTransform: 'uppercase' }}>DISPLAY NAME</label>
+                    <input type="text" defaultValue="Marcus Thorne" style={{ width: '100%', background: '#060d1f', border: '1px solid #162f62', color: '#e2e8f0', padding: '0.75rem 1rem', fontSize: '0.85rem' }} />
+                  </div>
+                </div>
+
+                <div style={{ borderBottom: '1px dashed #162f62', paddingBottom: '1rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.65rem', color: '#94a3b8', letterSpacing: '0.1em', marginBottom: '0.5rem', textTransform: 'uppercase' }}>PRIMARY EMAIL</label>
+                  <input type="email" defaultValue="m.thorne@vanguard-ops.com" style={{ width: '100%', background: '#060d1f', border: '1px solid #162f62', color: '#e2e8f0', padding: '0.75rem 1rem', fontSize: '0.85rem' }} />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.65rem', color: '#94a3b8', letterSpacing: '0.1em', marginBottom: '0.5rem', textTransform: 'uppercase' }}>BIO / DESCRIPTION</label>
+                  <textarea rows={3} defaultValue="Pro-level strategist specializing in tactical shooters. Lead captain for Vanguard Division. Always looking for the next bracket challenge." style={{ width: '100%', background: '#060d1f', border: '1px solid #162f62', color: '#94a3b8', padding: '0.75rem 1rem', fontSize: '0.85rem', resize: 'none', lineHeight: 1.6 }} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Security & Access */}
+          <div style={{ background: '#0a1628', border: '1px solid #162f62', padding: '2rem' }}>
+            <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#ffffff', fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem', fontFamily: 'Rajdhani, sans-serif' }}>
+              <Shield size={20} color="#f5c518" />
+              Security & Access
+            </h2>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {/* 2FA */}
+              <div style={{ background: '#060d1f', border: '1px solid #112650', padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ color: '#e2e8f0', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>Two-Factor Authentication</div>
+                  <div style={{ color: '#64748b', fontSize: '0.75rem' }}>Protect your account with an extra layer of security.</div>
+                </div>
+                <button style={{ background: 'transparent', border: '1px solid #f5c518', color: '#f5c518', padding: '0.5rem 1rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer' }}>ENABLE 2FA</button>
+              </div>
+
+              {/* Password */}
+              <div style={{ background: '#060d1f', border: '1px solid #112650', padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ color: '#e2e8f0', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>Update Password</div>
+                  <div style={{ color: '#64748b', fontSize: '0.75rem' }}>Last changed 45 days ago.</div>
+                </div>
+                <button style={{ background: 'transparent', border: '1px solid #162f62', color: '#94a3b8', padding: '0.5rem 1rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer' }}>CHANGE</button>
+              </div>
+
+              {/* Sessions */}
+              <div style={{ background: '#060d1f', border: '1px solid #112650', padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ color: '#e2e8f0', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>Active Sessions</div>
+                  <div style={{ color: '#64748b', fontSize: '0.75rem' }}>You are currently logged in on 3 devices.</div>
+                </div>
+                <button style={{ background: 'transparent', border: '1px solid #162f62', color: '#94a3b8', padding: '0.5rem 1rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer' }}>LOGOUT ALL</button>
+              </div>
+            </div>
+          </div>
+
+          {/* Danger Zone */}
+          <div style={{ background: 'rgba(225, 29, 72, 0.05)', border: '1px solid rgba(225, 29, 72, 0.3)', padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ color: '#e2e8f0', fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.25rem' }}>Danger Zone</div>
+              <div style={{ color: '#94a3b8', fontSize: '0.75rem' }}>Deleting your account is permanent and will wipe all tournament history and rankings.</div>
+            </div>
+            <button style={{ background: 'transparent', border: '1px solid #e11d48', color: '#e11d48', padding: '0.6rem 1rem', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer' }}>DELETE ACCOUNT</button>
+          </div>
+
+        </div>
+
+        {/* Right Column */}
+        <div style={{ background: '#0a1628', border: '1px solid #162f62', padding: '2rem' }}>
+          <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#ffffff', fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem', fontFamily: 'Rajdhani, sans-serif' }}>
+            <Bell size={20} color="#f5c518" />
+            Notifications
+          </h2>
+
+          <p style={{ color: '#94a3b8', fontSize: '0.8rem', marginBottom: '2rem', borderLeft: '2px solid #f5c518', paddingLeft: '1rem', lineHeight: 1.5 }}>
+            Select which arena events trigger a system alert.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '3rem' }}>
+            {[
+              { label: 'Tournament Starts', on: true },
+              { label: 'New Challenge Received', on: true },
+              { label: 'Live Match Alerts', on: false },
+              { label: 'Wallet Transactions', on: true },
+              { label: 'Promotional Offers', on: false }
+            ].map(item => (
+              <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: '#e2e8f0', fontSize: '0.85rem' }}>{item.label}</span>
+                <div style={{ width: 36, height: 20, background: item.on ? '#f5c518' : '#162f62', borderRadius: 10, position: 'relative', cursor: 'pointer' }}>
+                  <div style={{ width: 14, height: 14, background: '#ffffff', borderRadius: '50%', position: 'absolute', top: 3, left: item.on ? 19 : 3, transition: 'left 0.2s' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ background: '#060d1f', border: '1px solid #112650', padding: '1.5rem', textAlign: 'center' }}>
+            <Mail size={24} color="#64748b" style={{ margin: '0 auto 0.75rem auto' }} />
+            <div style={{ color: '#e2e8f0', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>Email Digest</div>
+            <div style={{ color: '#64748b', fontSize: '0.75rem', marginBottom: '1rem', lineHeight: 1.5 }}>
+              Receive a weekly summary of your stats and ranking progress.
+            </div>
+            <button style={{ background: 'transparent', border: 'none', color: '#f5c518', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer' }}>
+              CONFIGURE DIGEST
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}

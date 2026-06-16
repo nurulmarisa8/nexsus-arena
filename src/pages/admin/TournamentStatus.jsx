@@ -1,301 +1,159 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Plus, Filter, ChevronDown, Edit3, Settings, Users, Gamepad2, ChevronRight, Radio, Loader2
-} from 'lucide-react';
-import toast from 'react-hot-toast';
-import { tournamentsAPI, gamesAPI } from '../../services/api';
-
-const statusLabels = {
-  live: { label: 'LIVE', cls: 'badge-live', dot: true },
-  registration_open: { label: 'REGISTRATION OPEN', cls: 'badge-open' },
-  upcoming: { label: 'UPCOMING', cls: 'badge-upcoming' },
-  finished: { label: 'FINISHED', cls: 'badge-finished' },
-};
-
-const statusOptions = ['live', 'registration_open', 'upcoming', 'finished'];
+import React from 'react';
+import { Filter, Plus, Settings, ChevronDown, Gamepad2, Target, ChevronRight } from 'lucide-react';
 
 export default function TournamentStatus() {
-  const [tournaments, setTournaments] = useState([]);
-  const [gameTitles, setGameTitles] = useState([]);
-  const [showNewForm, setShowNewForm] = useState(false);
-  const [newT, setNewT] = useState({ name: '', game: '', maxTeams: 16, prizePool: '' });
-  const [loadingTournaments, setLoadingTournaments] = useState(true);
-  const [loadingGames, setLoadingGames] = useState(true);
-
-  useEffect(() => {
-    const fetchTournaments = async () => {
-      try {
-        const res = await tournamentsAPI.list();
-        const data = Array.isArray(res.data) ? res.data : (res.data.tournaments || res.data.data || []);
-        setTournaments(data.map(t => ({
-          id: t.id,
-          game: t.game?.name || t.game_name || '',
-          name: t.name || t.title || '',
-          status: t.status || 'upcoming',
-          registeredTeams: t.registered_teams ?? t.registeredTeams ?? 0,
-          maxTeams: t.max_teams ?? t.maxTeams ?? 16,
-          currentMatch: t.current_match ?? t.currentMatch ?? null,
-          prizePool: t.prize_pool ?? t.prizePool ?? 'TBD',
-        })));
-      } catch (err) {
-        toast.error('Failed to load tournaments');
-      } finally {
-        setLoadingTournaments(false);
-      }
-    };
-
-    const fetchGames = async () => {
-      try {
-        const res = await gamesAPI.list();
-        const data = Array.isArray(res.data) ? res.data : (res.data.games || res.data.data || []);
-        const mapped = data.map(g => ({
-          name: g.name || g.title || '',
-          genre: g.genre || g.description || '',
-          icon: g.icon || '🎮',
-        }));
-        setGameTitles(mapped);
-        if (mapped.length > 0 && !newT.game) {
-          setNewT(p => ({ ...p, game: mapped[0].name }));
-        }
-      } catch (err) {
-        toast.error('Failed to load games');
-      } finally {
-        setLoadingGames(false);
-      }
-    };
-
-    fetchTournaments();
-    fetchGames();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleStatusChange = async (id, status) => {
-    try {
-      await tournamentsAPI.update(id, { status });
-      setTournaments(prev => prev.map(t => t.id === id ? { ...t, status } : t));
-      toast.success('Tournament status updated');
-    } catch (err) {
-      toast.error('Failed to update tournament status');
-    }
-  };
-
-  const handleCreate = async (e) => {
-    e.preventDefault();
-    if (!newT.name.trim()) { toast.error('Tournament name required'); return; }
-    try {
-      const res = await tournamentsAPI.create({
-        name: newT.name,
-        game: newT.game,
-        max_teams: parseInt(newT.maxTeams),
-        prize_pool: newT.prizePool || 'TBD',
-      });
-      const created = res.data.tournament || res.data;
-      setTournaments(prev => [...prev, {
-        id: created.id || Date.now(),
-        game: created.game || created.game_name || newT.game,
-        name: created.name || created.title || newT.name,
-        status: created.status || 'upcoming',
-        registeredTeams: created.registered_teams ?? 0,
-        maxTeams: created.max_teams ?? parseInt(newT.maxTeams),
-        currentMatch: null,
-        prizePool: (created.prize_pool ?? newT.prizePool) || 'TBD',
-      }]);
-      setShowNewForm(false);
-      setNewT({ name: '', game: gameTitles[0]?.name || '', maxTeams: 16, prizePool: '' });
-      toast.success('Tournament created!');
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to create tournament');
-    }
-  };
-
   return (
-    <div style={{ padding: '2rem', minHeight: '100%' }}>
+    <div style={{ padding: '2.5rem', minHeight: '100%', maxWidth: 1400, margin: '0 auto' }}>
+      
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem' }}>
         <div>
-          <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.75rem', fontWeight: 700, color: '#e2e8f0', marginBottom: 4 }}>
+          <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2.25rem', fontWeight: 800, color: '#ffffff', letterSpacing: '0.02em', marginBottom: '0.25rem', textTransform: 'uppercase' }}>
             Tournament Status
           </h1>
-          <p style={{ color: '#64748b', fontSize: '0.85rem' }}>Manage active phases and configure game parameters.</p>
+          <p style={{ color: '#94a3b8', fontSize: '0.9rem', letterSpacing: '0.02em' }}>
+            Manage active phases and configure game parameters.
+          </p>
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Filter size={14} />
-            Filter
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <button style={{ background: '#0a1628', border: '1px solid #162f62', color: '#94a3b8', padding: '0.6rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+            <Filter size={14} /> FILTER
           </button>
-          <button className="btn-primary" onClick={() => setShowNewForm(true)} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Plus size={14} />
-            New Tournament
+          <button className="btn-primary" style={{ padding: '0.6rem 1.25rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Plus size={16} /> NEW TOURNAMENT
           </button>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '1.25rem', alignItems: 'start' }}>
-        {/* Tournament Cards */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {/* New Tournament Form */}
-          {showNewForm && (
-            <div className="card" style={{ padding: '1.5rem', border: '1px solid rgba(245,197,24,0.3)', animation: 'fadeIn 0.3s ease' }}>
-              <h3 style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: '#f5c518', marginBottom: '1rem', fontSize: '1rem' }}>
-                + New Tournament
-              </h3>
-              <form onSubmit={handleCreate} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <label className="label">Tournament Name</label>
-                  <input className="input-field" value={newT.name} onChange={e => setNewT(p => ({ ...p, name: e.target.value }))} placeholder="Championship Series 2025" />
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem', alignItems: 'start' }}>
+        
+        {/* Left Column: Tournaments */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          
+          {/* Card 1 */}
+          <div style={{ background: '#0a1628', border: '1px solid #162f62', borderTop: '3px solid #f5c518', padding: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div style={{ background: '#f5c518', color: '#060d1f', padding: '0.2rem 0.5rem', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.05em', borderRadius: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div style={{ width: 6, height: 6, background: '#ff5252', borderRadius: '50%' }}></div> LIVE
                 </div>
-                <div>
-                  <label className="label">Game</label>
-                  <select className="input-field" value={newT.game} onChange={e => setNewT(p => ({ ...p, game: e.target.value }))}>
-                    {gameTitles.map(g => <option key={g.name} value={g.name}>{g.name}</option>)}
-                  </select>
+                <div style={{ background: '#112650', color: '#94a3b8', padding: '0.2rem 0.5rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em', borderRadius: 2 }}>
+                  APEX LEGENDS
                 </div>
-                <div>
-                  <label className="label">Max Teams</label>
-                  <input className="input-field" type="number" value={newT.maxTeams} onChange={e => setNewT(p => ({ ...p, maxTeams: e.target.value }))} min={2} max={128} />
-                </div>
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <label className="label">Prize Pool</label>
-                  <input className="input-field" value={newT.prizePool} onChange={e => setNewT(p => ({ ...p, prizePool: e.target.value }))} placeholder="$10,000" />
-                </div>
-                <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 10 }}>
-                  <button type="submit" className="btn-primary" style={{ flex: 1 }}>Create Tournament</button>
-                  <button type="button" className="btn-secondary" onClick={() => setShowNewForm(false)} style={{ flex: 1 }}>Cancel</button>
-                </div>
-              </form>
+              </div>
+              <div style={{ background: '#060d1f', border: '1px solid #162f62', padding: '0.4rem 0.75rem', fontSize: '0.75rem', color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: '2rem', cursor: 'pointer' }}>
+                LIVE <ChevronDown size={14} color="#64748b" />
+              </div>
             </div>
-          )}
 
-          {loadingTournaments ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem 0' }}>
-              <Loader2 size={28} className="animate-spin" style={{ color: '#475569' }} />
+            <h2 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.75rem', fontWeight: 800, color: '#ffffff', letterSpacing: '0.02em', marginBottom: '1.5rem', textTransform: 'uppercase' }}>
+              APEX PREDATOR SERIES: NA FINALS
+            </h2>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid #112650', paddingBottom: '1.5rem' }}>
+              <div>
+                <div style={{ fontSize: '0.65rem', color: '#64748b', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>REGISTERED TEAMS</div>
+                <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.5rem', fontWeight: 800, color: '#ffffff' }}>20 / 20</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '0.65rem', color: '#64748b', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>CURRENT MATCH</div>
+                <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.5rem', fontWeight: 800, color: '#f5c518' }}>Match 4</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '0.65rem', color: '#64748b', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>PRIZE POOL</div>
+                <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.5rem', fontWeight: 800, color: '#ffffff' }}>$50,000</div>
+              </div>
             </div>
-          ) : tournaments.length === 0 ? (
-            <div className="card" style={{ padding: '2rem', textAlign: 'center', color: '#475569' }}>
-              No tournaments found. Create one to get started.
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '1.5rem' }}>
+              <button style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <Settings size={14} /> CONFIG
+              </button>
+              <button style={{ background: '#060d1f', border: '1px solid #162f62', color: '#e2e8f0', padding: '0.6rem 1.5rem', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}>
+                MANAGE TEAMS
+              </button>
             </div>
-          ) : (
-            tournaments.map(t => {
-              const st = statusLabels[t.status] || statusLabels.upcoming;
-              const progress = t.maxTeams > 0 ? (t.registeredTeams / t.maxTeams) * 100 : 0;
-              return (
-                <div key={t.id} className="card" style={{ padding: '1.25rem', position: 'relative', overflow: 'hidden' }}>
-                  {/* Top border accent for live */}
-                  {t.status === 'live' && (
-                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, #ff5252, #ff7675)' }} />
-                  )}
-                  {t.status === 'registration_open' && (
-                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, #69f0ae, #4fc3f7)' }} />
-                  )}
+          </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.875rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span className={`badge ${st.cls}`}>
-                        {st.dot && <span className="live-dot" style={{ width: 6, height: 6 }} />}
-                        {st.label}
-                      </span>
-                      <span style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
-                        {t.game}
-                      </span>
-                    </div>
-                    {/* Status Dropdown */}
-                    <select
-                      className="input-field"
-                      style={{ width: 'auto', padding: '0.3rem 2rem 0.3rem 0.6rem', fontSize: '0.7rem', background: '#0a1628' }}
-                      value={t.status}
-                      onChange={e => handleStatusChange(t.id, e.target.value)}
-                    >
-                      {statusOptions.map(s => (
-                        <option key={s} value={s}>{s.replace(/_/g, ' ').toUpperCase()}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <h2 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.25rem', fontWeight: 700, color: '#e2e8f0', marginBottom: '1rem', textTransform: 'uppercase' }}>
-                    {t.name}
-                  </h2>
-
-                  {t.status === 'live' ? (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
-                      {[
-                        { label: 'Registered Teams', value: `${t.registeredTeams} / ${t.maxTeams}` },
-                        { label: 'Current Match', value: t.currentMatch, gold: true },
-                        { label: 'Prize Pool', value: t.prizePool },
-                      ].map(item => (
-                        <div key={item.label}>
-                          <div style={{ fontSize: '0.65rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{item.label}</div>
-                          <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.1rem', fontWeight: 700, color: item.gold ? '#f5c518' : '#e2e8f0' }}>{item.value}</div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div style={{ marginBottom: '1rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#64748b', marginBottom: 6 }}>
-                        <span style={{ textTransform: 'uppercase', letterSpacing: '0.06em' }}>Registration Progress</span>
-                        <span style={{ color: '#f5c518', fontWeight: 600 }}>{t.registeredTeams} / {t.maxTeams} Teams</span>
-                      </div>
-                      <div className="progress-bar">
-                        <div className="progress-fill" style={{ width: `${progress}%` }} />
-                      </div>
-                    </div>
-                  )}
-
-                  <div style={{ display: 'flex', gap: 10 }}>
-                    <button className="btn-secondary" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Settings size={12} />
-                      Config
-                    </button>
-                    <button className="btn-primary" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      {t.status === 'live' ? <><Users size={12} /> Manage Teams</> : <><Edit3 size={12} /> Edit Details</>}
-                    </button>
-                  </div>
+          {/* Card 2 */}
+          <div style={{ background: '#0a1628', border: '1px solid #162f62', borderTop: '3px solid #f5c518', padding: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div style={{ background: '#f5c518', color: '#060d1f', padding: '0.2rem 0.5rem', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.05em', borderRadius: 2 }}>
+                  REGISTRATION OPEN
                 </div>
-              );
-            })
-          )}
+                <div style={{ background: '#112650', color: '#94a3b8', padding: '0.2rem 0.5rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em', borderRadius: 2 }}>
+                  VALORANT
+                </div>
+              </div>
+              <div style={{ background: '#060d1f', border: '1px solid #162f62', padding: '0.4rem 0.75rem', fontSize: '0.75rem', color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: '2rem', cursor: 'pointer' }}>
+                REGISTRATION OPEN <ChevronDown size={14} color="#64748b" />
+              </div>
+            </div>
+
+            <h2 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.75rem', fontWeight: 800, color: '#ffffff', letterSpacing: '0.02em', marginBottom: '2rem', textTransform: 'uppercase' }}>
+              IGNITION CUP QUALIFIERS
+            </h2>
+
+            <div style={{ marginBottom: '2rem', borderBottom: '1px solid #112650', paddingBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <div style={{ fontSize: '0.65rem', color: '#94a3b8', letterSpacing: '0.1em' }}>REGISTRATION PROGRESS</div>
+                <div style={{ fontSize: '0.75rem', color: '#e2e8f0', fontWeight: 700 }}>12 / 32 TEAMS</div>
+              </div>
+              <div style={{ height: 6, background: '#112650', borderRadius: 3, overflow: 'hidden' }}>
+                <div style={{ width: '37.5%', height: '100%', background: '#f5c518' }}></div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+              <button style={{ background: '#060d1f', border: '1px solid #162f62', color: '#e2e8f0', padding: '0.6rem 1.5rem', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}>
+                EDIT DETAILS
+              </button>
+            </div>
+          </div>
+
         </div>
 
-        {/* Game Titles Panel */}
-        <div className="card" style={{ padding: '1.25rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-            <h3 style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: '#f5c518', fontSize: '0.9rem', letterSpacing: '0.08em' }}>
+        {/* Right Column: Game Titles */}
+        <div style={{ background: '#0a1628', border: '1px solid #162f62', padding: '1.5rem' }}>
+          
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <h2 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.25rem', fontWeight: 800, color: '#ffffff', letterSpacing: '0.02em' }}>
               GAME TITLES
-            </h3>
-            <button style={{ background: 'rgba(245,197,24,0.1)', border: '1px solid rgba(245,197,24,0.3)', borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f5c518', cursor: 'pointer' }}>
-              <Plus size={14} />
+            </h2>
+            <button style={{ background: '#f5c518', border: 'none', color: '#060d1f', width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <Plus size={16} />
             </button>
           </div>
-          {loadingGames ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}>
-              <Loader2 size={24} className="animate-spin" style={{ color: '#475569' }} />
-            </div>
-          ) : gameTitles.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '1rem 0', color: '#475569', fontSize: '0.8rem' }}>
-              No games found.
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {gameTitles.map(g => (
-                <div key={g.name} style={{
-                  display: 'flex', alignItems: 'center', gap: 12, padding: '0.75rem',
-                  background: '#0a1628', borderRadius: 8, cursor: 'pointer',
-                  border: '1px solid #112650', transition: 'border-color 0.15s',
-                }}
-                  className="card-hover"
-                >
-                  <div style={{ width: 34, height: 34, background: '#112650', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0 }}>
-                    {g.icon}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#e2e8f0', fontFamily: 'Rajdhani, sans-serif' }}>{g.name}</div>
-                    <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{g.genre}</div>
-                  </div>
-                  <ChevronRight size={14} color="#475569" />
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            
+            <div style={{ background: '#060d1f', border: '1px solid #112650', padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <Gamepad2 size={24} color="#94a3b8" />
+                <div>
+                  <div style={{ color: '#e2e8f0', fontSize: '0.9rem', fontWeight: 700, letterSpacing: '0.05em', marginBottom: 2 }}>APEX LEGENDS</div>
+                  <div style={{ color: '#64748b', fontSize: '0.65rem' }}>Battle Royale • Squads</div>
                 </div>
-              ))}
+              </div>
+              <ChevronRight size={16} color="#475569" />
             </div>
-          )}
+
+            <div style={{ background: '#060d1f', border: '1px solid #112650', padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <Target size={24} color="#94a3b8" />
+                <div>
+                  <div style={{ color: '#e2e8f0', fontSize: '0.9rem', fontWeight: 700, letterSpacing: '0.05em', marginBottom: 2 }}>VALORANT</div>
+                  <div style={{ color: '#64748b', fontSize: '0.65rem' }}>Tac Shooter • 5v5</div>
+                </div>
+              </div>
+              <ChevronRight size={16} color="#475569" />
+            </div>
+
+          </div>
+
         </div>
+
       </div>
     </div>
   );
