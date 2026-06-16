@@ -109,8 +109,8 @@ export default function LoginPage() {
                 <label className="label" style={{ margin: 0, color: '#e2e8f0' }}>PASSWORD</label>
                 <a href="#" style={{ fontSize: '0.65rem', color: '#f5c518', textDecoration: 'none', letterSpacing: '0.05em', fontWeight: 600 }}>RECOVER ACCESS</a>
               </div>
-              <div className="input-icon-wrapper">
-                <Lock />
+              <div className="input-icon-wrapper" style={{ position: 'relative' }}>
+                <Lock style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748b', width: 16, height: 16, pointerEvents: 'none' }} />
                 <input
                   className={`input-field ${error ? 'error' : ''}`}
                   type={showPassword ? 'text' : 'password'}
@@ -119,15 +119,17 @@ export default function LoginPage() {
                   onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
                   required
                   id="login-password"
-                  style={{ paddingRight: '2.5rem' }}
+                  style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(p => !p)}
                   style={{
                     position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
-                    background: 'none', border: 'none', color: '#475569', cursor: 'pointer', padding: 0,
+                    background: 'none', border: 'none', color: '#475569', cursor: 'pointer', padding: 4,
+                    zIndex: 2,
                   }}
+                  id="toggle-password"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>

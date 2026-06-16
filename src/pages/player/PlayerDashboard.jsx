@@ -58,16 +58,31 @@ export default function PlayerDashboard() {
 
         // Fetch recent matches
         try {
-          const matchesRes = await matchesAPI.list();
-          const matchData = Array.isArray(matchesRes.data) ? matchesRes.data : (matchesRes.data.matches || matchesRes.data.data || []);
-          setRecentMatches(matchData.slice(0, 3).map(m => ({
-            id: m.id ? `#${m.id}` : (m.match_id ? `#${m.match_id}` : ''),
-            opponent: m.team2_name || m.team2?.name || m.opponent || m.teams?.[1] || 'Unknown',
-            schedule: m.schedule || m.scheduled_at || m.start_time || '',
-            status: m.status || 'upcoming',
-            result: m.result || null,
-            score: m.score_display || (m.score_team1 != null && m.score_team2 != null ? `${m.score_team1}-${m.score_team2}` : null),
-          })));
+          if (!hasTeam) {
+            setRecentMatches([]);
+          } else {
+            const matchesRes = await matchesAPI.list();
+            const matchData = Array.isArray(matchesRes.data) ? matchesRes.data : (matchesRes.data.matches || matchesRes.data.data || []);
+            // Filter by user's team if backend doesn't
+            const myMatches = matchData.filter(m => 
+              m.team1_name === user?.teamName || 
+              m.team2_name === user?.teamName || 
+              m.team1_name === user?.team_name || 
+              m.team2_name === user?.team_name
+            );
+            
+            // If none matched exact name, fallback to taking first 3 for demo, but realistically it should be empty if no matches
+            const displayMatches = myMatches.length > 0 ? myMatches : [];
+            
+            setRecentMatches(displayMatches.slice(0, 3).map(m => ({
+              id: m.id ? `#${m.id}` : (m.match_id ? `#${m.match_id}` : ''),
+              opponent: (m.team1_name === user?.teamName || m.team1_name === user?.team_name) ? (m.team2_name || m.opponent) : (m.team1_name || m.opponent || 'Unknown'),
+              schedule: m.schedule || m.scheduled_at || m.start_time || '',
+              status: m.status || 'upcoming',
+              result: m.result || null,
+              score: m.score_display || (m.score_team1 != null && m.score_team2 != null ? `${m.score_team1}-${m.score_team2}` : null),
+            })));
+          }
         } catch (err) {
           // Matches may not be available
         }
@@ -154,9 +169,6 @@ export default function PlayerDashboard() {
             <h2 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1rem', fontWeight: 700, color: '#e2e8f0', letterSpacing: '0.05em' }}>
               Your Recent Matches
             </h2>
-            <button onClick={() => navigate('/player/live')} style={{ fontSize: '0.7rem', color: '#f5c518', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Rajdhani, sans-serif', letterSpacing: '0.08em', fontWeight: 600 }}>
-              VIEW ALL →
-            </button>
           </div>
           {recentMatches.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '2rem 0', color: '#475569', fontSize: '0.85rem' }}>
@@ -193,7 +205,7 @@ export default function PlayerDashboard() {
                   )}
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 600, color: '#e2e8f0', fontSize: '0.875rem' }}>
-                      vs <span style={{ color: '#f5c518' }}>{m.opponent}</span>
+                      <span style={{ color: '#94a3b8' }}>{user?.teamName || user?.team_name || 'Your Team'}</span> vs <span style={{ color: '#f5c518' }}>{m.opponent}</span>
                       {m.score && <span style={{ marginLeft: 8, fontFamily: 'Rajdhani, sans-serif', color: '#94a3b8' }}>{m.score}</span>}
                     </div>
                     <div style={{ fontSize: '0.72rem', color: '#475569', marginTop: 2 }}>{m.schedule}</div>
@@ -213,9 +225,6 @@ export default function PlayerDashboard() {
             <h2 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1rem', fontWeight: 700, color: '#e2e8f0', letterSpacing: '0.05em' }}>
               Open Tournaments
             </h2>
-            <button onClick={() => navigate('/player/tournaments')} style={{ fontSize: '0.7rem', color: '#f5c518', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Rajdhani, sans-serif', fontWeight: 600 }}>
-              SEE ALL →
-            </button>
           </div>
           {upcomingTournaments.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '2rem 0', color: '#475569', fontSize: '0.85rem' }}>
@@ -238,11 +247,10 @@ export default function PlayerDashboard() {
                   </div>
                   <button
                     className="btn-primary"
-                    onClick={() => navigate('/player/tournaments')}
-                    disabled={!hasTeam}
-                    style={{ width: '100%', marginTop: '0.75rem', fontSize: '0.75rem', opacity: hasTeam ? 1 : 0.5 }}
+                    onClick={() => navigate(hasTeam ? '/player/tournaments' : '/player/team')}
+                    style={{ width: '100%', marginTop: '0.75rem', fontSize: '0.75rem' }}
                   >
-                    {hasTeam ? 'Register Team →' : 'Need a Team First'}
+                    {hasTeam ? 'View Tournaments →' : 'Need a Team First →'}
                   </button>
                 </div>
               ))}

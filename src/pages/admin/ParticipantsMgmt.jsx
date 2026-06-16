@@ -82,6 +82,61 @@ function ActionDropdown({ userId, currentStatus, onUpdated }) {
   );
 }
 
+function TeamActionDropdown({ teamId, currentStatus, onUpdated }) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handle = async (newStatus) => {
+    setOpen(false);
+    if (newStatus === currentStatus) return;
+    setLoading(true);
+    try {
+      await teamsAPI.updateStatus(teamId, newStatus);
+      toast.success(`Status tim diubah ke ${newStatus}`);
+      onUpdated(teamId, newStatus);
+    } catch (err) {
+      toast.error('Gagal mengubah status tim');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ position: 'relative', display: 'inline-block' }}>
+      <button
+        onClick={() => setOpen(p => !p)}
+        disabled={loading}
+        style={{
+          background: 'transparent', border: '1px solid #f5c518', color: '#f5c518',
+          padding: '0.35rem 0.875rem', fontSize: '0.7rem', fontWeight: 600,
+          cursor: 'pointer', borderRadius: 2, display: 'flex', alignItems: 'center', gap: 4,
+        }}
+      >
+        {loading ? <Loader2 size={12} className="animate-spin" /> : 'Manage'}
+        <ChevronDown size={10} />
+      </button>
+      {open && (
+        <div style={{ position: 'absolute', right: 0, top: '110%', background: '#0d1f3c', border: '1px solid #162f62', borderRadius: 4, zIndex: 100, minWidth: 140 }}>
+          {['verified', 'pending', 'suspended'].map(s => (
+            <button
+              key={s}
+              onClick={() => handle(s)}
+              style={{
+                display: 'block', width: '100%', padding: '0.5rem 0.875rem', background: 'transparent',
+                border: 'none', textAlign: 'left', fontSize: '0.78rem', cursor: 'pointer',
+                color: s === 'suspended' ? '#ff5252' : s === 'verified' ? '#4fc3f7' : '#f5c518',
+                fontWeight: 600,
+              }}
+            >
+              Set {s.charAt(0).toUpperCase() + s.slice(1)}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─────────────────────────────────────────────
    Komponen Utama
 ───────────────────────────────────────────── */
@@ -111,6 +166,10 @@ export default function ParticipantsMgmt() {
 
   const handleStatusUpdated = (userId, newStatus) => {
     setUsers(prev => prev.map(u => u.id === userId ? { ...u, status: newStatus } : u));
+  };
+
+  const handleTeamStatusUpdated = (teamId, newStatus) => {
+    setTeams(prev => prev.map(t => t.id === teamId ? { ...t, status: newStatus } : t));
   };
 
   const handleExportCSV = async () => {
@@ -267,9 +326,9 @@ export default function ParticipantsMgmt() {
                   <tr key={team.id} style={{ borderBottom: '1px solid #112650' }}>
                     <td style={tdStyle}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
-                        <div style={{ background: '#060d1f', border: '1px solid #162f62', padding: '0.4rem', borderRadius: 4, display: 'flex' }}>
+                        <div style={{ width: 32, height: 32, background: '#060d1f', border: '1px solid #162f62', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
                           {team.logo_url
-                            ? <img src={team.logo_url} alt={team.name} style={{ width: 20, height: 20, objectFit: 'cover', borderRadius: 4 }} onError={e => { e.target.style.display = 'none'; }} />
+                            ? <img src={team.logo_url} alt={team.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { e.target.src = 'https://via.placeholder.com/32/060d1f/475569?text=T'; }} />
                             : <Shield size={16} color="#94a3b8" />
                           }
                         </div>
@@ -288,7 +347,7 @@ export default function ParticipantsMgmt() {
                       <StatusBadge status={team.status} />
                     </td>
                     <td style={{ ...tdStyle, textAlign: 'right' }}>
-                      <span style={{ fontSize: '0.7rem', color: '#64748b' }}>ID #{team.id}</span>
+                      <TeamActionDropdown teamId={team.id} currentStatus={team.status} onUpdated={handleTeamStatusUpdated} />
                     </td>
                   </tr>
                 ))

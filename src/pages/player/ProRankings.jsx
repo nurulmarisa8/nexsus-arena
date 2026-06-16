@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Search } from 'lucide-react';
 
 export default function ProRankings() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [season, setSeason] = useState('current'); // 'all', 'current'
+  const [page, setPage] = useState(1);
   const topTeams = [
     { rank: 2, name: 'VORTEX KINGS', sub: 'PREMIER LEAGUE', winRate: '78.4%', points: '12,450', img: 'https://api.dicebear.com/7.x/bottts/svg?seed=vortex' },
     { rank: 1, name: 'ZEPHYR ELITE', sub: 'WORLD CHAMPIONS', winRate: '84.2%', points: '15,820', img: 'https://api.dicebear.com/7.x/bottts/svg?seed=zephyr' },
@@ -13,7 +16,19 @@ export default function ProRankings() {
     { rank: '05', tag: 'RS', name: 'Rising Suns', player: 'K. JØRGENSEN', region: 'Europe', winRate: 65.2, matches: '942', points: '8,210' },
     { rank: '06', tag: 'AV', name: 'Apex Void', player: 'M. ROSSI', region: 'North America', winRate: 61.9, matches: '2,150', points: '7,950' },
     { rank: '07', tag: 'DS', name: 'Dark Star', player: 'A. PETROV', region: 'Europe', winRate: 59.4, matches: '1,830', points: '7,400' },
+    { rank: '08', tag: 'NX', name: 'Nexus Core', player: 'J. SMITH', region: 'North America', winRate: 58.1, matches: '1,100', points: '7,200' },
+    { rank: '09', tag: 'OG', name: 'Omega Guard', player: 'S. LEE', region: 'Asia-Pacific', winRate: 57.5, matches: '850', points: '6,900' },
+    { rank: '10', tag: 'VN', name: 'Venom', player: 'A. COSTA', region: 'South America', winRate: 55.0, matches: '1,420', points: '6,500' },
   ];
+
+  const filteredLeaderboard = leaderboard.filter(t => 
+    t.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    t.player.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
+  const itemsPerPage = 4;
+  const totalPages = Math.ceil(filteredLeaderboard.length / itemsPerPage) || 1;
+  const paginatedData = filteredLeaderboard.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
   return (
     <div style={{ padding: '2.5rem', minHeight: '100%', maxWidth: 1200, margin: '0 auto' }}>
@@ -29,10 +44,26 @@ export default function ProRankings() {
           </h1>
         </div>
         <div style={{ display: 'flex', gap: '1rem' }}>
-          <button style={{ background: 'transparent', border: '1px solid #162f62', color: '#94a3b8', padding: '0.6rem 1.5rem', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer' }}>
+          <button 
+            onClick={() => { setSeason('all'); setPage(1); }}
+            className={season === 'all' ? 'btn-primary' : ''}
+            style={{ 
+              background: season === 'all' ? '#f5c518' : 'transparent', 
+              border: season === 'all' ? 'none' : '1px solid #162f62', 
+              color: season === 'all' ? '#060d1f' : '#94a3b8', 
+              padding: '0.6rem 1.5rem', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer', borderRadius: 0 
+            }}>
             ALL TIME
           </button>
-          <button className="btn-primary" style={{ padding: '0.6rem 1.5rem', fontSize: '0.75rem', borderRadius: 0 }}>
+          <button 
+            onClick={() => { setSeason('current'); setPage(1); }}
+            className={season === 'current' ? 'btn-primary' : ''} 
+            style={{ 
+              background: season === 'current' ? '#f5c518' : 'transparent', 
+              border: season === 'current' ? 'none' : '1px solid #162f62', 
+              color: season === 'current' ? '#060d1f' : '#94a3b8', 
+              padding: '0.6rem 1.5rem', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer', borderRadius: 0 
+            }}>
             CURRENT SEASON
           </button>
         </div>
@@ -117,7 +148,13 @@ export default function ProRankings() {
           </div>
           <div style={{ position: 'relative' }}>
             <Search size={14} color="#64748b" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
-            <input type="text" placeholder="Search team or player..." style={{ background: '#060d1f', border: '1px solid #112650', color: '#e2e8f0', padding: '0.5rem 1rem 0.5rem 2rem', fontSize: '0.75rem', width: 240 }} />
+            <input 
+              type="text" 
+              placeholder="Search team or player..." 
+              value={searchQuery}
+              onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
+              style={{ background: '#060d1f', border: '1px solid #112650', color: '#e2e8f0', padding: '0.5rem 1rem 0.5rem 2rem', fontSize: '0.75rem', width: 240, outline: 'none' }} 
+            />
           </div>
         </div>
 
@@ -133,7 +170,7 @@ export default function ProRankings() {
             </tr>
           </thead>
           <tbody>
-            {leaderboard.map((row, i) => (
+            {paginatedData.map((row, i) => (
               <tr key={i} style={{ borderBottom: '1px solid #112650', cursor: 'pointer' }}>
                 <td style={{ padding: '1.25rem 1rem', fontSize: '0.9rem', color: '#94a3b8' }}>{row.rank}</td>
                 <td style={{ padding: '1.25rem 1rem' }}>
@@ -158,17 +195,42 @@ export default function ProRankings() {
                 <td style={{ padding: '1.25rem 1rem', textAlign: 'right', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.1rem', fontWeight: 700, color: '#f5c518' }}>{row.points}</td>
               </tr>
             ))}
+            {paginatedData.length === 0 && (
+              <tr>
+                <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#64748b', fontSize: '0.85rem' }}>No results found for "{searchQuery}"</td>
+              </tr>
+            )}
           </tbody>
         </table>
 
-        {/* Pagination Placeholder */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 4, marginTop: '1.5rem' }}>
-          <button style={{ background: '#060d1f', border: '1px solid #112650', color: '#64748b', padding: '0.25rem 0.75rem', cursor: 'pointer' }}>&lt;</button>
-          <button style={{ background: '#f5c518', border: '1px solid #f5c518', color: '#060d1f', padding: '0.25rem 0.75rem', fontWeight: 700, cursor: 'pointer' }}>1</button>
-          <button style={{ background: '#060d1f', border: '1px solid #112650', color: '#94a3b8', padding: '0.25rem 0.75rem', cursor: 'pointer' }}>2</button>
-          <button style={{ background: '#060d1f', border: '1px solid #112650', color: '#94a3b8', padding: '0.25rem 0.75rem', cursor: 'pointer' }}>3</button>
-          <button style={{ background: '#060d1f', border: '1px solid #112650', color: '#64748b', padding: '0.25rem 0.75rem', cursor: 'pointer' }}>&gt;</button>
-        </div>
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 4, marginTop: '1.5rem' }}>
+            <button 
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+              style={{ background: '#060d1f', border: '1px solid #112650', color: page === 1 ? '#475569' : '#64748b', padding: '0.25rem 0.75rem', cursor: page === 1 ? 'not-allowed' : 'pointer' }}>&lt;</button>
+            
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+              <button 
+                key={p}
+                onClick={() => setPage(p)}
+                style={{ 
+                  background: page === p ? '#f5c518' : '#060d1f', 
+                  border: page === p ? '1px solid #f5c518' : '1px solid #112650', 
+                  color: page === p ? '#060d1f' : '#94a3b8', 
+                  padding: '0.25rem 0.75rem', fontWeight: page === p ? 700 : 400, cursor: 'pointer' 
+                }}>
+                {p}
+              </button>
+            ))}
+
+            <button 
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              style={{ background: '#060d1f', border: '1px solid #112650', color: page === totalPages ? '#475569' : '#64748b', padding: '0.25rem 0.75rem', cursor: page === totalPages ? 'not-allowed' : 'pointer' }}>&gt;</button>
+          </div>
+        )}
       </div>
 
       {/* Footer Info */}

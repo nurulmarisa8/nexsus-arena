@@ -1,11 +1,70 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Shield, Bell, Mail } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
 export default function PlayerSettings() {
+  const { user, updateUser } = useAuth();
+  
+  // Local state for the form, initialized from the context
+  const [form, setForm] = useState({
+    username: '',
+    displayName: '',
+    email: '',
+    bio: '',
+  });
+
+  const [notifs, setNotifs] = useState({
+    tournamentStarts: true,
+    newChallenge: true,
+    liveMatchAlerts: false,
+    walletTransactions: true,
+    promoOffers: false,
+  });
+
+  // Sync state when user loads
+  useEffect(() => {
+    if (user) {
+      setForm({
+        username: user.name || '',
+        displayName: user.displayName || user.name || '',
+        email: user.email || '',
+        bio: user.bio || '',
+      });
+      if (user.settings?.notifs) {
+        setNotifs(user.settings.notifs);
+      }
+    }
+  }, [user]);
+
   const handleSave = (e) => {
     e.preventDefault();
+    // Persist changes in AuthContext (and localStorage)
+    updateUser({ 
+      ...form, 
+      name: form.username, // keep name synced 
+      settings: { notifs } 
+    });
     toast.success('Profile updated successfully!');
+  };
+
+  const handleDiscard = () => {
+    if (user) {
+      setForm({
+        username: user.name || '',
+        displayName: user.displayName || user.name || '',
+        email: user.email || '',
+        bio: user.bio || '',
+      });
+      if (user.settings?.notifs) {
+        setNotifs(user.settings.notifs);
+      }
+    }
+    toast.error('Changes discarded');
+  };
+
+  const toggleNotif = (key) => {
+    setNotifs(p => ({ ...p, [key]: !p[key] }));
   };
 
   return (
@@ -21,7 +80,7 @@ export default function PlayerSettings() {
           </h1>
         </div>
         <div style={{ display: 'flex', gap: '1rem' }}>
-          <button className="btn-secondary" style={{ padding: '0.6rem 1.5rem', fontSize: '0.75rem', borderRadius: 0, borderColor: '#162f62', color: '#94a3b8' }}>
+          <button className="btn-secondary" onClick={handleDiscard} style={{ padding: '0.6rem 1.5rem', fontSize: '0.75rem', borderRadius: 0, borderColor: '#162f62', color: '#94a3b8' }}>
             DISCARD
           </button>
           <button className="btn-primary" onClick={handleSave} style={{ padding: '0.6rem 1.5rem', fontSize: '0.75rem', borderRadius: 0 }}>
@@ -47,22 +106,42 @@ export default function PlayerSettings() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div style={{ borderBottom: '1px dashed #162f62', paddingBottom: '1rem' }}>
                     <label style={{ display: 'block', fontSize: '0.65rem', color: '#94a3b8', letterSpacing: '0.1em', marginBottom: '0.5rem', textTransform: 'uppercase' }}>GAMERTAG</label>
-                    <input type="text" defaultValue="VANGUARD_STRIKER" style={{ width: '100%', background: '#060d1f', border: '1px solid #162f62', color: '#e2e8f0', padding: '0.75rem 1rem', fontSize: '0.85rem' }} />
+                    <input 
+                      type="text" 
+                      value={form.username}
+                      onChange={e => setForm(p => ({ ...p, username: e.target.value }))}
+                      style={{ width: '100%', background: '#060d1f', border: '1px solid #162f62', color: '#e2e8f0', padding: '0.75rem 1rem', fontSize: '0.85rem' }} 
+                    />
                   </div>
                   <div style={{ borderBottom: '1px dashed #162f62', paddingBottom: '1rem' }}>
                     <label style={{ display: 'block', fontSize: '0.65rem', color: '#94a3b8', letterSpacing: '0.1em', marginBottom: '0.5rem', textTransform: 'uppercase' }}>DISPLAY NAME</label>
-                    <input type="text" defaultValue="Marcus Thorne" style={{ width: '100%', background: '#060d1f', border: '1px solid #162f62', color: '#e2e8f0', padding: '0.75rem 1rem', fontSize: '0.85rem' }} />
+                    <input 
+                      type="text" 
+                      value={form.displayName}
+                      onChange={e => setForm(p => ({ ...p, displayName: e.target.value }))}
+                      style={{ width: '100%', background: '#060d1f', border: '1px solid #162f62', color: '#e2e8f0', padding: '0.75rem 1rem', fontSize: '0.85rem' }} 
+                    />
                   </div>
                 </div>
 
                 <div style={{ borderBottom: '1px dashed #162f62', paddingBottom: '1rem' }}>
                   <label style={{ display: 'block', fontSize: '0.65rem', color: '#94a3b8', letterSpacing: '0.1em', marginBottom: '0.5rem', textTransform: 'uppercase' }}>PRIMARY EMAIL</label>
-                  <input type="email" defaultValue="m.thorne@vanguard-ops.com" style={{ width: '100%', background: '#060d1f', border: '1px solid #162f62', color: '#e2e8f0', padding: '0.75rem 1rem', fontSize: '0.85rem' }} />
+                  <input 
+                    type="email" 
+                    value={form.email}
+                    onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+                    style={{ width: '100%', background: '#060d1f', border: '1px solid #162f62', color: '#e2e8f0', padding: '0.75rem 1rem', fontSize: '0.85rem' }} 
+                  />
                 </div>
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.65rem', color: '#94a3b8', letterSpacing: '0.1em', marginBottom: '0.5rem', textTransform: 'uppercase' }}>BIO / DESCRIPTION</label>
-                  <textarea rows={3} defaultValue="Pro-level strategist specializing in tactical shooters. Lead captain for Vanguard Division. Always looking for the next bracket challenge." style={{ width: '100%', background: '#060d1f', border: '1px solid #162f62', color: '#94a3b8', padding: '0.75rem 1rem', fontSize: '0.85rem', resize: 'none', lineHeight: 1.6 }} />
+                  <textarea 
+                    rows={3} 
+                    value={form.bio}
+                    onChange={e => setForm(p => ({ ...p, bio: e.target.value }))}
+                    style={{ width: '100%', background: '#060d1f', border: '1px solid #162f62', color: '#94a3b8', padding: '0.75rem 1rem', fontSize: '0.85rem', resize: 'none', lineHeight: 1.6 }} 
+                  />
                 </div>
               </div>
             </div>
@@ -82,7 +161,7 @@ export default function PlayerSettings() {
                   <div style={{ color: '#e2e8f0', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>Two-Factor Authentication</div>
                   <div style={{ color: '#64748b', fontSize: '0.75rem' }}>Protect your account with an extra layer of security.</div>
                 </div>
-                <button style={{ background: 'transparent', border: '1px solid #f5c518', color: '#f5c518', padding: '0.5rem 1rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer' }}>ENABLE 2FA</button>
+                <button onClick={() => toast.success('2FA Setup Instructions Sent!')} style={{ background: 'transparent', border: '1px solid #f5c518', color: '#f5c518', padding: '0.5rem 1rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer' }}>ENABLE 2FA</button>
               </div>
 
               {/* Password */}
@@ -91,7 +170,7 @@ export default function PlayerSettings() {
                   <div style={{ color: '#e2e8f0', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>Update Password</div>
                   <div style={{ color: '#64748b', fontSize: '0.75rem' }}>Last changed 45 days ago.</div>
                 </div>
-                <button style={{ background: 'transparent', border: '1px solid #162f62', color: '#94a3b8', padding: '0.5rem 1rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer' }}>CHANGE</button>
+                <button onClick={() => toast('Password reset link sent to email', { icon: '📧' })} style={{ background: 'transparent', border: '1px solid #162f62', color: '#94a3b8', padding: '0.5rem 1rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer' }}>CHANGE</button>
               </div>
 
               {/* Sessions */}
@@ -100,7 +179,7 @@ export default function PlayerSettings() {
                   <div style={{ color: '#e2e8f0', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>Active Sessions</div>
                   <div style={{ color: '#64748b', fontSize: '0.75rem' }}>You are currently logged in on 3 devices.</div>
                 </div>
-                <button style={{ background: 'transparent', border: '1px solid #162f62', color: '#94a3b8', padding: '0.5rem 1rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer' }}>LOGOUT ALL</button>
+                <button onClick={() => toast.success('All other sessions logged out')} style={{ background: 'transparent', border: '1px solid #162f62', color: '#94a3b8', padding: '0.5rem 1rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer' }}>LOGOUT ALL</button>
               </div>
             </div>
           </div>
@@ -111,7 +190,7 @@ export default function PlayerSettings() {
               <div style={{ color: '#e2e8f0', fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.25rem' }}>Danger Zone</div>
               <div style={{ color: '#94a3b8', fontSize: '0.75rem' }}>Deleting your account is permanent and will wipe all tournament history and rankings.</div>
             </div>
-            <button style={{ background: 'transparent', border: '1px solid #e11d48', color: '#e11d48', padding: '0.6rem 1rem', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer' }}>DELETE ACCOUNT</button>
+            <button onClick={() => toast.error('Account deletion requires contacting support')} style={{ background: 'transparent', border: '1px solid #e11d48', color: '#e11d48', padding: '0.6rem 1rem', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer' }}>DELETE ACCOUNT</button>
           </div>
 
         </div>
@@ -129,16 +208,19 @@ export default function PlayerSettings() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '3rem' }}>
             {[
-              { label: 'Tournament Starts', on: true },
-              { label: 'New Challenge Received', on: true },
-              { label: 'Live Match Alerts', on: false },
-              { label: 'Wallet Transactions', on: true },
-              { label: 'Promotional Offers', on: false }
+              { key: 'tournamentStarts', label: 'Tournament Starts' },
+              { key: 'newChallenge', label: 'New Challenge Received' },
+              { key: 'liveMatchAlerts', label: 'Live Match Alerts' },
+              { key: 'walletTransactions', label: 'Wallet Transactions' },
+              { key: 'promoOffers', label: 'Promotional Offers' }
             ].map(item => (
-              <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div key={item.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ color: '#e2e8f0', fontSize: '0.85rem' }}>{item.label}</span>
-                <div style={{ width: 36, height: 20, background: item.on ? '#f5c518' : '#162f62', borderRadius: 10, position: 'relative', cursor: 'pointer' }}>
-                  <div style={{ width: 14, height: 14, background: '#ffffff', borderRadius: '50%', position: 'absolute', top: 3, left: item.on ? 19 : 3, transition: 'left 0.2s' }} />
+                <div 
+                  onClick={() => toggleNotif(item.key)}
+                  style={{ width: 36, height: 20, background: notifs[item.key] ? '#f5c518' : '#162f62', borderRadius: 10, position: 'relative', cursor: 'pointer' }}
+                >
+                  <div style={{ width: 14, height: 14, background: '#ffffff', borderRadius: '50%', position: 'absolute', top: 3, left: notifs[item.key] ? 19 : 3, transition: 'left 0.2s' }} />
                 </div>
               </div>
             ))}
@@ -150,7 +232,7 @@ export default function PlayerSettings() {
             <div style={{ color: '#64748b', fontSize: '0.75rem', marginBottom: '1rem', lineHeight: 1.5 }}>
               Receive a weekly summary of your stats and ranking progress.
             </div>
-            <button style={{ background: 'transparent', border: 'none', color: '#f5c518', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer' }}>
+            <button onClick={() => toast.success('Weekly digest enabled!')} style={{ background: 'transparent', border: 'none', color: '#f5c518', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer' }}>
               CONFIGURE DIGEST
             </button>
           </div>

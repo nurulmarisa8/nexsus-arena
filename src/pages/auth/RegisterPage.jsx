@@ -169,17 +169,17 @@ export default function RegisterPage() {
               {/* Password Field */}
               <div>
                 <label className="label" style={{ marginBottom: '0.375rem', color: '#e2e8f0' }}>PASSWORD</label>
-                <div className="input-icon-wrapper">
-                  <Lock />
+                <div className="input-icon-wrapper" style={{ position: 'relative' }}>
+                  <Lock style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748b', width: 16, height: 16, pointerEvents: 'none' }} />
                   <input 
                     className={`input-field ${errors.password ? 'error' : ''}`} 
                     type={showPassword ? 'text' : 'password'} 
                     placeholder="••••••••" 
                     value={form.password} 
                     onChange={update('password')} 
-                    style={{ paddingRight: '2.5rem' }} 
+                    style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }} 
                   />
-                  <button type="button" onClick={() => setShowPassword(p => !p)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#475569', cursor: 'pointer', padding: 0 }}>
+                  <button type="button" onClick={() => setShowPassword(p => !p)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#475569', cursor: 'pointer', padding: 4, zIndex: 2 }}>
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>

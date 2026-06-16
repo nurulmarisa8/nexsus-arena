@@ -83,6 +83,7 @@ export default function AdminLayout() {
         <div style={{ padding: '1rem', borderTop: '1px solid #162f62', display: 'flex', flexDirection: 'column', gap: 8 }}>
           <NavLink
             to="/admin/settings"
+            end
             className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
             style={({ isActive }) => ({
               padding: '0.75rem 1rem',
@@ -91,7 +92,7 @@ export default function AdminLayout() {
               backgroundColor: isActive ? 'rgba(245, 197, 24, 0.1)' : 'transparent',
               color: isActive ? '#f5c518' : '#94a3b8',
               display: 'flex', alignItems: 'center', gap: 12,
-              textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600
+              textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600,
             })}
           >
             <Settings size={18} />
@@ -141,15 +142,23 @@ export default function AdminLayout() {
             ))}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <button style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 6 }}>
+            <button 
+              onClick={() => toast('No new notifications', { icon: '🔔', style: { background: '#0a1628', color: '#e2e8f0', border: '1px solid #162f62' } })}
+              style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 6 }}
+              id="admin-notif-btn"
+            >
               <Bell size={18} />
             </button>
-            <div style={{
-              width: 32, height: 32, background: 'linear-gradient(135deg, #162f62, #1a3a7a)',
-              borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              border: '2px solid #112650', cursor: 'pointer'
-            }}>
-              <ShieldIcon small />
+            <div 
+              onClick={() => navigate('/admin/settings')}
+              style={{
+                width: 32, height: 32, background: 'linear-gradient(135deg, #162f62, #1a3a7a)',
+                borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                border: '2px solid #112650', cursor: 'pointer'
+              }}
+              title="Admin Settings"
+            >
+              <User size={16} color="#4fc3f7" />
             </div>
           </div>
         </header>

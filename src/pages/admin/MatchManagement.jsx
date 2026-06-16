@@ -49,7 +49,8 @@ function CreateMatchModal({ onClose, onCreated }) {
       };
       const res = await matchesAPI.create(payload);
       toast.success('Match berhasil dibuat!');
-      onCreated(res.data);
+      const newMatch = res.data.match || res.data;
+      onCreated(newMatch);
       onClose();
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Gagal membuat match');
@@ -171,7 +172,8 @@ function ScoreModal({ match, onClose, onUpdated }) {
       });
       // Step 8: Pesan Keberhasilan
       toast.success('Hasil pertandingan berhasil disimpan!');
-      onUpdated(res.data);
+      const updatedMatch = res.data.match || res.data;
+      onUpdated(updatedMatch);
       onClose();
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Gagal menyimpan skor');
@@ -274,11 +276,10 @@ export default function MatchManagement() {
   const fetchMatches = async () => {
     setLoading(true);
     try {
-      const params = {};
-      if (statusFilter) params.status = statusFilter;
-      const res = await matchesAPI.list(params);
+      const res = await matchesAPI.list();
       // Normalize: backend uses 'pending' as default, we show it as 'upcoming'
-      const normalized = (Array.isArray(res.data) ? res.data : []).map(m => ({
+      const matchData = Array.isArray(res.data) ? res.data : (res.data.matches || []);
+      const normalized = matchData.map(m => ({
         ...m,
         status: m.status === 'pending' ? 'upcoming' : m.status,
       }));
@@ -315,9 +316,10 @@ export default function MatchManagement() {
     );
   };
 
-  const liveMatches = matches.filter(m => ['live', 'in_progress'].includes(m.status));
-  const finishedMatches = matches.filter(m => m.status === 'finished');
-  const upcomingMatches = matches.filter(m => m.status === 'upcoming');
+  const filteredMatches = statusFilter ? matches.filter(m => m.status === statusFilter) : matches;
+  const liveMatches = filteredMatches.filter(m => ['live', 'in_progress'].includes(m.status));
+  const finishedMatches = filteredMatches.filter(m => m.status === 'finished');
+  const upcomingMatches = filteredMatches.filter(m => m.status === 'upcoming');
 
   return (
     <div style={{ padding: '2.5rem', minHeight: '100%', maxWidth: 1400, margin: '0 auto' }}>

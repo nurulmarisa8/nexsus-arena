@@ -542,7 +542,8 @@ select.input-field {
   position: relative;
   width: 100%;
 }
-.input-icon-wrapper svg {
+/* Only left-side icon SVGs should be non-interactive */
+.input-icon-wrapper > svg:first-child {
   position: absolute;
   left: 12px;
   top: 50%;
