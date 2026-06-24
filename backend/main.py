@@ -503,12 +503,20 @@ def get_tournament_brackets(tournament_id: int, db: Session = Depends(get_db)):
     if not matches:
         return schemas.BracketResponse(name=tournament.title, rounds=[])
 
-    # Group matches into rounds
-    rounds_dict: dict[int, list] = {}
-    for idx, match in enumerate(matches):
-        round_num = idx // max(len(matches) // 2, 1)
-        if round_num not in rounds_dict:
-            rounds_dict[round_num] = []
+    # Group matches into rounds based on round_name
+    # Define standard sorting order for rounds
+    round_order = {
+        "Round 1": 1,
+        "Quarter Finals": 2,
+        "Semi Finals": 3,
+        "Finals": 4
+    }
+
+    rounds_dict: dict[str, list] = {}
+    for match in matches:
+        r_name = match.round_name or "Unassigned"
+        if r_name not in rounds_dict:
+            rounds_dict[r_name] = []
 
         team1_name = match.team1.name if match.team1 else "TBD"
         team2_name = match.team2.name if match.team2 else "TBD"
@@ -520,7 +528,7 @@ def get_tournament_brackets(tournament_id: int, db: Session = Depends(get_db)):
             elif match.winner_id == match.team2_id:
                 winner_val = 2
 
-        rounds_dict[round_num].append(
+        rounds_dict[r_name].append(
             schemas.BracketMatch(
                 team1=team1_name,
                 team2=team2_name,
@@ -530,11 +538,13 @@ def get_tournament_brackets(tournament_id: int, db: Session = Depends(get_db)):
             )
         )
 
-    round_names = ["Round 1", "Quarter Finals", "Semi Finals", "Finals"]
+    # Sort rounds explicitly
+    def get_round_sort_key(name):
+        return round_order.get(name, 99)
+
     rounds_out = []
-    for i, (_, bracket_matches) in enumerate(sorted(rounds_dict.items())):
-        name = round_names[i] if i < len(round_names) else f"Round {i + 1}"
-        rounds_out.append(schemas.BracketRound(name=name, matches=bracket_matches))
+    for r_name in sorted(rounds_dict.keys(), key=get_round_sort_key):
+        rounds_out.append(schemas.BracketRound(name=r_name, matches=rounds_dict[r_name]))
 
     return schemas.BracketResponse(name=tournament.title, rounds=rounds_out)
 
@@ -558,6 +568,7 @@ def _build_match_response(match: models.Match) -> schemas.MatchResponse:
         status=match.status,
         match_date=match.match_date,
         winner_name=match.winner.name if match.winner else None,
+        round_name=match.round_name,
     )
 
 
@@ -599,6 +610,7 @@ def create_match(
         team1_id=payload.team1_id,
         team2_id=payload.team2_id,
         match_date=payload.match_date,
+        round_name=payload.round_name,
     )
     db.add(match)
     db.commit()

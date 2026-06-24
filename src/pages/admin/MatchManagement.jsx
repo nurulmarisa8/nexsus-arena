@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 function CreateMatchModal({ onClose, onCreated }) {
   const [tournaments, setTournaments] = useState([]);
   const [teams, setTeams] = useState([]);
-  const [form, setForm] = useState({ tournament_id: '', team1_id: '', team2_id: '', match_date: '' });
+  const [form, setForm] = useState({ tournament_id: '', team1_id: '', team2_id: '', match_date: '', round_name: 'Round 1' });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
@@ -46,6 +46,7 @@ function CreateMatchModal({ onClose, onCreated }) {
         team1_id: Number(form.team1_id),
         team2_id: Number(form.team2_id),
         match_date: form.match_date || null,
+        round_name: form.round_name || 'Round 1',
       };
       const res = await matchesAPI.create(payload);
       toast.success('Match berhasil dibuat!');
@@ -113,6 +114,15 @@ function CreateMatchModal({ onClose, onCreated }) {
                 value={form.match_date}
                 onChange={e => setForm(p => ({ ...p, match_date: e.target.value }))}
               />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.75rem', color: '#94a3b8', marginBottom: 6, letterSpacing: '0.05em' }}>BRACKET ROUND *</label>
+              <select style={{ ...inputStyle }} value={form.round_name} onChange={e => setForm(p => ({ ...p, round_name: e.target.value }))}>
+                <option value="Round 1">Round 1</option>
+                <option value="Quarter Finals">Quarter Finals</option>
+                <option value="Semi Finals">Semi Finals</option>
+                <option value="Finals">Finals</option>
+              </select>
             </div>
             <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
               <button type="button" onClick={onClose} style={{ flex: 1, padding: '0.7rem', background: 'transparent', border: '1px solid #162f62', color: '#94a3b8', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700 }}>Cancel</button>
@@ -328,10 +338,10 @@ export default function MatchManagement() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem' }}>
         <div>
           <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2.25rem', fontWeight: 800, color: '#ffffff', letterSpacing: '0.02em', marginBottom: '0.25rem' }}>
-            Match Scoring
+            Brackets & Matches
           </h1>
           <p style={{ color: '#94a3b8', fontSize: '0.9rem', letterSpacing: '0.02em' }}>
-            Manage live results and validate completed matches.
+            Manage tournament brackets, create matches, and input scores.
           </p>
         </div>
         <div style={{ display: 'flex', gap: '1rem' }}>
@@ -479,6 +489,9 @@ function MatchCard({ match, onScore, statusBadge }) {
           MATCH #{match.id}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ background: '#162f62', color: '#f5c518', padding: '0.2rem 0.6rem', fontSize: '0.6rem', fontWeight: 700, borderRadius: 2 }}>
+            {match.round_name || 'Round 1'}
+          </div>
           {statusBadge(match.status)}
           <span style={{ fontSize: '0.65rem', color: '#475569' }}>{match.tournament_name}</span>
         </div>

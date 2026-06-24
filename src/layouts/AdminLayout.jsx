@@ -10,7 +10,7 @@ const navItems = [
   { icon: LayoutDashboard, label: 'Overview', to: '/admin/dashboard' },
   { icon: Users, label: 'Participants', to: '/admin/users' },
   { icon: Trophy, label: 'Tournaments', to: '/admin/tournaments' },
-  { icon: CalendarDays, label: 'Match Scoring', to: '/admin/matches' },
+  { icon: CalendarDays, label: 'Brackets & Matches', to: '/admin/matches' },
 ];
 
 const topNav = [];

@@ -150,6 +150,7 @@ class MatchResponse(BaseModel):
     status: str
     match_date: Optional[datetime] = None
     winner_name: Optional[str] = None
+    round_name: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -160,6 +161,7 @@ class MatchCreate(BaseModel):
     team1_id: int
     team2_id: int
     match_date: Optional[datetime] = None
+    round_name: Optional[str] = None
 
 
 class MatchScoreUpdate(BaseModel):

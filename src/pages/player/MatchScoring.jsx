@@ -293,19 +293,7 @@ export default function MatchScoring() {
         )}
       </div>
 
-      {/* Footer Status Bar */}
-      <div style={{ background: '#0a1628', borderTop: '1px solid #162f62', padding: '0.6rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <div style={{ width: 6, height: 6, background: '#69f0ae', borderRadius: '50%' }}></div>
-            <span style={{ fontSize: '0.65rem', color: '#64748b', letterSpacing: '0.1em' }}>SYSTEM ONLINE</span>
-          </div>
-          <span style={{ fontSize: '0.65rem', color: '#64748b', letterSpacing: '0.1em' }}>
-            LIVE MATCHES: {allMatches.filter(m => ['live', 'in_progress'].includes(m.status)).length}
-          </span>
-        </div>
-        <span style={{ fontSize: '0.65rem', color: '#475569', letterSpacing: '0.1em' }}>© 2024 NEXUS ARENA GLOBAL</span>
-      </div>
+
     </div>
   );
 }

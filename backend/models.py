@@ -111,6 +111,7 @@ class Match(Base):
     status = Column(String, default=MatchStatus.pending.value)
     match_date = Column(DateTime, default=datetime.utcnow)
     winner_id = Column(Integer, ForeignKey("teams.id"), nullable=True)
+    round_name = Column(String, nullable=True)
 
     tournament = relationship("Tournament", back_populates="matches")
     team1 = relationship("Team", foreign_keys=[team1_id])

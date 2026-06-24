@@ -89,7 +89,7 @@ export default function PlayerSettings() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '2rem', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '2rem', alignItems: 'start', maxWidth: 800 }}>
         
         {/* Left Column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -177,20 +177,7 @@ export default function PlayerSettings() {
 
         </div>
 
-        {/* Right Column - Removed Notifications */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-          {/* Email Digest */}
-          <div style={{ background: '#060d1f', border: '1px solid #112650', padding: '1.5rem', textAlign: 'center' }}>
-            <Mail size={24} color="#64748b" style={{ margin: '0 auto 0.75rem auto' }} />
-            <div style={{ color: '#e2e8f0', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>Email Digest</div>
-            <div style={{ color: '#64748b', fontSize: '0.75rem', marginBottom: '1rem', lineHeight: 1.5 }}>
-              Receive a weekly summary of your stats and ranking progress.
-            </div>
-            <button onClick={() => toast.success('Weekly digest enabled!')} style={{ background: 'transparent', border: 'none', color: '#f5c518', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer' }}>
-              CONFIGURE DIGEST
-            </button>
-          </div>
-        </div>
+
 
       </div>
     </div>

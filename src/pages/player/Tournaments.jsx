@@ -166,24 +166,12 @@ export default function Tournaments() {
                   </div>
                   <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: 0, lineHeight: 1.6 }}>{t.description}</p>
 
-                  {/* Progress */}
-                  <div style={{ marginTop: '0.875rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#64748b', marginBottom: 5 }}>
-                      <span>Registration Progress</span>
-                      <span style={{ color: '#f5c518', fontWeight: 600 }}>{t.registeredTeams} / {t.maxTeams} teams</span>
-                    </div>
-                    <div className="progress-bar">
-                      <div className="progress-fill" style={{ width: `${progress}%` }} />
-                    </div>
-                  </div>
+
                 </div>
 
                 {/* Right Column */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 10, minWidth: 140 }}>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '0.65rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Prize Pool</div>
-                    <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.25rem', fontWeight: 700, color: '#f5c518' }}>{t.prizePool}</div>
-                  </div>
+
 
                   {isRegistered ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0.5rem 1rem', background: 'rgba(105,240,174,0.1)', border: '1px solid rgba(105,240,174,0.3)', borderRadius: 6, color: '#69f0ae', fontSize: '0.8rem', fontWeight: 700, fontFamily: 'Rajdhani, sans-serif' }}>

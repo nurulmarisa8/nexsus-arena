@@ -290,7 +290,7 @@ export default function TournamentStatus() {
           <Loader2 size={32} className="animate-spin" style={{ color: '#f5c518' }} />
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem', alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '2rem', alignItems: 'start', maxWidth: 900 }}>
 
           {/* Left: Tournaments */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -375,36 +375,7 @@ export default function TournamentStatus() {
             )}
           </div>
 
-          {/* Right: Game Titles */}
-          <div style={{ background: '#0a1628', border: '1px solid #162f62', padding: '1.5rem', position: 'sticky', top: '1rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.15rem', fontWeight: 800, color: '#ffffff', letterSpacing: '0.02em' }}>
-                GAME TITLES
-              </h2>
-              <span style={{ fontSize: '0.65rem', color: '#475569' }}>{games.length} games</span>
-            </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {games.length === 0 ? (
-                <div style={{ textAlign: 'center', color: '#475569', fontSize: '0.8rem', padding: '1rem' }}>No games yet.</div>
-              ) : (
-                games.map(g => (
-                  <div key={g.id} style={{ background: '#060d1f', border: '1px solid #112650', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
-                      {g.genre === 'FPS' ? <Target size={22} color="#94a3b8" /> :
-                       g.genre === 'Battle Royale' ? <Swords size={22} color="#94a3b8" /> :
-                       <Gamepad2 size={22} color="#94a3b8" />}
-                      <div>
-                        <div style={{ color: '#e2e8f0', fontSize: '0.85rem', fontWeight: 700, letterSpacing: '0.05em' }}>{g.name}</div>
-                        <div style={{ color: '#64748b', fontSize: '0.65rem', marginTop: 2 }}>{g.genre}</div>
-                      </div>
-                    </div>
-                    <ChevronRight size={14} color="#475569" />
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
         </div>
       )}
 

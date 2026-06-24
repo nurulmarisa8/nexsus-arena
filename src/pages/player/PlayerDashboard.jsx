@@ -74,14 +74,38 @@ export default function PlayerDashboard() {
             // If none matched exact name, fallback to taking first 3 for demo, but realistically it should be empty if no matches
             const displayMatches = myMatches.length > 0 ? myMatches : [];
             
-            setRecentMatches(displayMatches.slice(0, 3).map(m => ({
-              id: m.id ? `#${m.id}` : (m.match_id ? `#${m.match_id}` : ''),
-              opponent: (m.team1_name === user?.teamName || m.team1_name === user?.team_name) ? (m.team2_name || m.opponent) : (m.team1_name || m.opponent || 'Unknown'),
-              schedule: m.schedule || m.scheduled_at || m.start_time || '',
-              status: m.status || 'upcoming',
-              result: m.result || null,
-              score: m.score_display || (m.score_team1 != null && m.score_team2 != null ? `${m.score_team1}-${m.score_team2}` : null),
-            })));
+            setRecentMatches(displayMatches.slice(0, 3).map(m => {
+              const isTeam1 = m.team1_name === user?.teamName || m.team1_name === user?.team_name;
+              let res = m.result;
+              if (!res && m.status === 'finished') {
+                if (m.score_team1 != null && m.score_team2 != null) {
+                  if (m.score_team1 > m.score_team2) res = isTeam1 ? 'win' : 'loss';
+                  else if (m.score_team1 < m.score_team2) res = isTeam1 ? 'loss' : 'win';
+                  else res = 'draw';
+                } else if (m.score_display) {
+                  const parts = m.score_display.split('-');
+                  if (parts.length === 2) {
+                    const s1 = parseInt(parts[0], 10);
+                    const s2 = parseInt(parts[1], 10);
+                    if (!isNaN(s1) && !isNaN(s2)) {
+                      if (s1 > s2) res = isTeam1 ? 'win' : 'loss';
+                      else if (s1 < s2) res = isTeam1 ? 'loss' : 'win';
+                      else res = 'draw';
+                    }
+                  }
+                }
+                if (!res) res = 'draw';
+              }
+              
+              return {
+                id: m.id ? `#${m.id}` : (m.match_id ? `#${m.match_id}` : ''),
+                opponent: isTeam1 ? (m.team2_name || m.opponent) : (m.team1_name || m.opponent || 'Unknown'),
+                schedule: m.schedule || m.scheduled_at || m.start_time || '',
+                status: m.status || 'upcoming',
+                result: res,
+                score: m.score_display || (m.score_team1 != null && m.score_team2 != null ? `${m.score_team1}-${m.score_team2}` : null),
+              };
+            }));
           }
         } catch (err) {
           // Matches may not be available
@@ -94,14 +118,26 @@ export default function PlayerDashboard() {
           const open = tourData
             .filter(t => t.status === 'registration_open' || t.status === 'upcoming')
             .slice(0, 2);
-          setUpcomingTournaments(open.map(t => ({
-            name: t.name || t.title || '',
-            game: t.game?.name || t.game_name || '',
-            date: t.start_date || t.startDate || t.date || '',
-            prize: t.prize_pool || t.prizePool || 'TBD',
-            slots: `${t.registered_teams ?? t.registeredTeams ?? 0}/${t.max_teams ?? t.maxTeams ?? 0}`,
-            open: t.status === 'registration_open',
-          })));
+          setUpcomingTournaments(open.map(t => {
+            let rawDate = t.start_date || t.startDate || t.date || '';
+            let formattedDate = rawDate;
+            if (rawDate) {
+              try {
+                const d = new Date(rawDate);
+                if (!isNaN(d.getTime())) {
+                  formattedDate = d.toLocaleString('id-ID', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(/\./g, ':');
+                }
+              } catch (e) {}
+            }
+            return {
+              name: t.name || t.title || '',
+              game: t.game?.name || t.game_name || '',
+              date: formattedDate,
+              prize: t.prize_pool || t.prizePool || 'TBD',
+              slots: `${t.registered_teams ?? t.registeredTeams ?? 0}/${t.max_teams ?? t.maxTeams ?? 0}`,
+              open: t.status === 'registration_open',
+            };
+          }));
         } catch (err) {
           // Tournaments may not be available
         }
@@ -178,13 +214,13 @@ export default function PlayerDashboard() {
                   {m.status === 'finished' && (
                     <div style={{
                       width: 36, height: 36, borderRadius: 8, flexShrink: 0,
-                      background: m.result === 'win' ? 'rgba(105,240,174,0.1)' : 'rgba(255,82,82,0.1)',
-                      border: `1px solid ${m.result === 'win' ? 'rgba(105,240,174,0.3)' : 'rgba(255,82,82,0.3)'}`,
+                      background: m.result === 'win' ? 'rgba(105,240,174,0.1)' : m.result === 'loss' ? 'rgba(255,82,82,0.1)' : 'rgba(148,163,184,0.1)',
+                      border: `1px solid ${m.result === 'win' ? 'rgba(105,240,174,0.3)' : m.result === 'loss' ? 'rgba(255,82,82,0.3)' : 'rgba(148,163,184,0.3)'}`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: '0.75rem',
-                      color: m.result === 'win' ? '#69f0ae' : '#ff5252',
+                      color: m.result === 'win' ? '#69f0ae' : m.result === 'loss' ? '#ff5252' : '#94a3b8',
                     }}>
-                      {m.result?.toUpperCase()}
+                      {m.result ? m.result.toUpperCase() : 'FIN'}
                     </div>
                   )}
                   {m.status === 'upcoming' && (

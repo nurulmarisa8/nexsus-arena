@@ -3,7 +3,6 @@ import { Search } from 'lucide-react';
 
 export default function ProRankings() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [season, setSeason] = useState('current'); // 'all', 'current'
   const [page, setPage] = useState(1);
   const topTeams = [
     { rank: 2, name: 'VORTEX KINGS', sub: 'PREMIER LEAGUE', winRate: '78.4%', points: '12,450', img: 'https://api.dicebear.com/7.x/bottts/svg?seed=vortex' },
@@ -36,36 +35,9 @@ export default function ProRankings() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem' }}>
         <div>
-          <div style={{ background: 'rgba(225, 29, 72, 0.15)', border: '1px solid rgba(225, 29, 72, 0.3)', color: '#ff5252', padding: '0.3rem 0.75rem', fontSize: '0.65rem', fontWeight: 700, borderRadius: 2, display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: '1rem', letterSpacing: '0.1em' }}>
-            <div style={{ width: 6, height: 6, background: '#ff5252', borderRadius: '50%' }}></div> SEASON 4 LIVE
-          </div>
           <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2.5rem', fontWeight: 800, color: '#ffffff', letterSpacing: '0.02em', lineHeight: 1 }}>
             GLOBAL PRO RANKINGS
           </h1>
-        </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <button 
-            onClick={() => { setSeason('all'); setPage(1); }}
-            className={season === 'all' ? 'btn-primary' : ''}
-            style={{ 
-              background: season === 'all' ? '#f5c518' : 'transparent', 
-              border: season === 'all' ? 'none' : '1px solid #162f62', 
-              color: season === 'all' ? '#060d1f' : '#94a3b8', 
-              padding: '0.6rem 1.5rem', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer', borderRadius: 0 
-            }}>
-            ALL TIME
-          </button>
-          <button 
-            onClick={() => { setSeason('current'); setPage(1); }}
-            className={season === 'current' ? 'btn-primary' : ''} 
-            style={{ 
-              background: season === 'current' ? '#f5c518' : 'transparent', 
-              border: season === 'current' ? 'none' : '1px solid #162f62', 
-              color: season === 'current' ? '#060d1f' : '#94a3b8', 
-              padding: '0.6rem 1.5rem', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer', borderRadius: 0 
-            }}>
-            CURRENT SEASON
-          </button>
         </div>
       </div>
 
@@ -190,14 +162,7 @@ export default function ProRankings() {
         )}
       </div>
 
-      {/* Footer Info */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2rem', padding: '0 0.5rem' }}>
-        <div style={{ fontSize: '0.65rem', color: '#475569', letterSpacing: '0.1em' }}>NEXUS ARENA // OFFICIAL RANKING SYSTEM V4.2.0</div>
-        <div style={{ display: 'flex', gap: '2rem' }}>
-          <div style={{ fontSize: '0.65rem', color: '#475569', letterSpacing: '0.1em' }}>DATA INTEGRITY CHECK: PASSED</div>
-          <div style={{ fontSize: '0.65rem', color: '#475569', letterSpacing: '0.1em' }}>NEXT UPDATE: 14:00 UTC</div>
-        </div>
-      </div>
+
 
     </div>
   );

@@ -126,7 +126,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '1.5rem', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem', alignItems: 'start' }}>
 
         {/* Recent Matches Table */}
         <div style={{ background: '#0a1628', border: '1px solid #162f62' }}>
@@ -179,36 +179,7 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        {/* Server Schedules */}
-        <div style={{ background: '#0a1628', border: '1px solid #162f62' }}>
-          <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #112650', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1rem', fontWeight: 700, color: '#ffffff', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Server size={16} color="#f5c518" /> SERVER SCHEDULES
-            </h2>
-          </div>
-          <div style={{ padding: '1rem' }}>
-            {loading ? (
-              <div style={{ padding: '1rem', textAlign: 'center' }}>
-                <Loader2 size={20} className="animate-spin" style={{ color: '#475569' }} />
-              </div>
-            ) : servers.length === 0 ? (
-              <div style={{ padding: '1rem', textAlign: 'center', color: '#475569', fontSize: '0.8rem' }}>No server schedules.</div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {servers.map(sv => (
-                  <div key={sv.id} style={{ background: '#060d1f', border: `1px solid ${sv.active ? '#162f62' : '#0d1a2f'}`, padding: '0.875rem', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.65rem', color: '#64748b', letterSpacing: '0.1em' }}>{sv.time}</span>
-                      {sv.active && <div style={{ width: 6, height: 6, background: '#69f0ae', borderRadius: '50%' }} />}
-                    </div>
-                    <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: sv.active ? '#e2e8f0' : '#475569', fontSize: '0.9rem' }}>{sv.title}</div>
-                    <div style={{ fontSize: '0.65rem', color: '#475569', letterSpacing: '0.05em' }}>{sv.region} · {sv.server}</div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+
       </div>
     </div>
   );
