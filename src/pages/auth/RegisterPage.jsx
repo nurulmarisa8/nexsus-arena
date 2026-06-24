@@ -44,17 +44,7 @@ export default function RegisterPage() {
       padding: '0'
     }}>
       {/* Top Header Bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem 2rem', borderBottom: '1px solid #112650', backgroundColor: '#060d1f', zIndex: 10 }}>
-        <div style={{ display: 'flex', gap: '2rem' }}>
-          <div>
-            <div style={{ fontSize: '0.65rem', color: '#475569', fontWeight: 600, letterSpacing: '0.05em' }}>ACTIVE PLAYERS</div>
-            <div style={{ fontSize: '1.25rem', color: '#e2e8f0', fontWeight: 700, fontFamily: 'Rajdhani, sans-serif' }}>420,931</div>
-          </div>
-          <div>
-            <div style={{ fontSize: '0.65rem', color: '#475569', fontWeight: 600, letterSpacing: '0.05em' }}>SERVERS UP</div>
-            <div style={{ fontSize: '1.25rem', color: '#f5c518', fontWeight: 700, fontFamily: 'Rajdhani, sans-serif' }}>99.9%</div>
-          </div>
-        </div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '1rem 2rem', borderBottom: '1px solid #112650', backgroundColor: '#060d1f', zIndex: 10 }}>
         <div style={{ fontSize: '0.65rem', color: '#475569', alignSelf: 'flex-end', letterSpacing: '0.05em' }}>
           © 2024 NEXUS ARENA GLOBAL TOURNAMENTS. ALL RIGHTS RESERVED.
         </div>
@@ -125,9 +115,6 @@ export default function RegisterPage() {
         {/* Right Column - Form */}
         <div style={{ flex: '1 1 400px', maxWidth: 480 }}>
           <div className="auth-box" style={{ padding: '2.5rem', borderRadius: '4px' }}>
-            <div style={{ position: 'absolute', top: '1rem', right: '1rem', fontSize: '0.65rem', color: '#475569', letterSpacing: '0.1em', fontFamily: 'Rajdhani, sans-serif' }}>
-              SYS_REG_v4.2
-            </div>
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '1rem' }}>
               
@@ -230,9 +217,6 @@ export default function RegisterPage() {
           <div style={{ width: 4, height: 16, background: '#f5c518' }} />
           <div style={{ width: 4, height: 16, background: '#f5c518' }} />
           <div style={{ width: 4, height: 16, background: '#475569' }} />
-        </div>
-        <div style={{ fontSize: '0.65rem', color: '#475569', letterSpacing: '0.1em', fontFamily: 'Rajdhani, sans-serif' }}>
-          TERMINAL CONNECTION: SECURE // 256-BIT AES
         </div>
       </div>
     </div>

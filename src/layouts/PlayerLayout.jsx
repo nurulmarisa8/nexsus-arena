@@ -16,7 +16,6 @@ const navItems = [
 
 const topNav = [
   { label: 'TOURNAMENTS', to: '/player/tournaments' },
-  { label: 'LIVE MATCHES', to: '/player/live' },
   { label: 'PRO RANKINGS', to: '/player/rankings' },
 ];
 
@@ -144,28 +143,7 @@ export default function PlayerLayout() {
             ))}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <button 
-              onClick={() => toast('No new notifications', { icon: '🔔', style: { background: '#0a1628', color: '#e2e8f0', border: '1px solid #162f62' } })}
-              style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 6 }}
-              id="player-notif-btn"
-            >
-              <Bell size={18} />
-            </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#112650', padding: '4px 12px', borderRadius: 4, border: '1px solid #162f62' }}>
-              <Wallet size={14} color="#94a3b8" />
-              <span style={{ fontSize: '0.8rem', color: '#e2e8f0', fontWeight: 600, fontFamily: 'Rajdhani, sans-serif' }}>4,250.00</span>
-            </div>
-            <div 
-              onClick={() => navigate('/player/settings')}
-              style={{
-                width: 32, height: 32, background: 'linear-gradient(135deg, #162f62, #1a3a7a)',
-                borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                border: '2px solid #112650', cursor: 'pointer'
-              }}
-              title="Profile Settings"
-            >
-              <User size={16} color="#4fc3f7" />
-            </div>
+            {/* Removed top right profile settings icon */}
           </div>
         </header>
 

@@ -95,16 +95,7 @@ export default function AdminDashboard() {
           <Loader2 size={32} className="animate-spin" style={{ color: '#f5c518' }} />
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
-
-          {/* Card 1 - Total Games */}
-          <div style={{ background: '#0a1628', border: '1px solid #162f62', padding: '1.5rem' }}>
-            <div style={{ fontSize: '0.65rem', color: '#94a3b8', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.75rem' }}>TOTAL GAMES</div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-              <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2.5rem', fontWeight: 800, color: '#ffffff', lineHeight: 1 }}>{fmt(stats?.total_games)}</span>
-              <span style={{ fontSize: '0.75rem', color: '#69f0ae', fontWeight: 700 }}>game titles</span>
-            </div>
-          </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
 
           {/* Card 2 - Active Matches */}
           <div style={{ background: '#0a1628', border: '1px solid #162f62', padding: '1.5rem' }}>

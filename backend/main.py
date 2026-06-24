@@ -561,14 +561,7 @@ def _build_match_response(match: models.Match) -> schemas.MatchResponse:
     )
 
 
-@app.get("/api/matches/live", response_model=List[schemas.MatchResponse], tags=["Matches"])
-def get_live_matches(db: Session = Depends(get_db)):
-    matches = (
-        db.query(models.Match)
-        .filter(or_(models.Match.status == "live", models.Match.status == "in_progress"))
-        .all()
-    )
-    return [_build_match_response(m) for m in matches]
+
 
 
 @app.get("/api/matches", response_model=List[schemas.MatchResponse], tags=["Matches"])

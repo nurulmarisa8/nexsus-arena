@@ -10,7 +10,7 @@ const navItems = [
   { icon: LayoutDashboard, label: 'Overview', to: '/admin/dashboard' },
   { icon: Users, label: 'Participants', to: '/admin/users' },
   { icon: Trophy, label: 'Tournaments', to: '/admin/tournaments' },
-  { icon: Activity, label: 'Match Scoring', to: '/admin/matches' },
+  { icon: CalendarDays, label: 'Match Scoring', to: '/admin/matches' },
 ];
 
 const topNav = [];
@@ -142,24 +142,7 @@ export default function AdminLayout() {
             ))}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <button 
-              onClick={() => toast('No new notifications', { icon: '🔔', style: { background: '#0a1628', color: '#e2e8f0', border: '1px solid #162f62' } })}
-              style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 6 }}
-              id="admin-notif-btn"
-            >
-              <Bell size={18} />
-            </button>
-            <div 
-              onClick={() => navigate('/admin/settings')}
-              style={{
-                width: 32, height: 32, background: 'linear-gradient(135deg, #162f62, #1a3a7a)',
-                borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                border: '2px solid #112650', cursor: 'pointer'
-              }}
-              title="Admin Settings"
-            >
-              <User size={16} color="#4fc3f7" />
-            </div>
+            {/* Removed top right profile settings icon */}
           </div>
         </header>
 

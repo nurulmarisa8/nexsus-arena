@@ -20,7 +20,6 @@ import AdminSettings from '../pages/admin/AdminSettings';
 
 // Player Pages
 import PlayerDashboard from '../pages/player/PlayerDashboard';
-import LiveMatches from '../pages/player/LiveMatches';
 import TeamHub from '../pages/player/TeamHub';
 import Tournaments from '../pages/player/Tournaments';
 import Brackets from '../pages/player/Brackets';
@@ -56,7 +55,6 @@ export default function AppRouter() {
       <Route element={<ProtectedRoute requiredRole="player" />}>
         <Route element={<PlayerLayout />}>
           <Route path="/player/dashboard" element={<PlayerDashboard />} />
-          <Route path="/player/live" element={<LiveMatches />} />
           <Route path="/player/team" element={<TeamHub />} />
           <Route path="/player/tournaments" element={<Tournaments />} />
           <Route path="/player/brackets" element={<Brackets />} />

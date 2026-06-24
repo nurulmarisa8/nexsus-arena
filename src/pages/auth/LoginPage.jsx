@@ -55,9 +55,6 @@ export default function LoginPage() {
       <div style={{ position: 'absolute', left: '4rem', top: '50%', transform: 'translateY(-50%) rotate(-90deg)', transformOrigin: 'left center', fontSize: '0.6rem', color: '#162f62', letterSpacing: '0.2em', whiteSpace: 'nowrap', fontFamily: 'Rajdhani, sans-serif' }}>
         SYSTEM STATUS : OPTIMAL
       </div>
-      <div style={{ position: 'absolute', right: '4rem', top: '50%', transform: 'translateY(-50%) rotate(90deg)', transformOrigin: 'right center', fontSize: '0.6rem', color: '#162f62', letterSpacing: '0.2em', whiteSpace: 'nowrap', fontFamily: 'Rajdhani, sans-serif' }}>
-        ENCRYPTED UPLINK
-      </div>
 
       <div style={{ width: '100%', maxWidth: 420, position: 'relative', zIndex: 10 }}>
         

@@ -80,16 +80,6 @@ export default function ProRankings() {
           </div>
           <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.5rem', fontWeight: 800, color: '#e2e8f0', marginBottom: 2 }}>{topTeams[0].name}</div>
           <div style={{ fontSize: '0.65rem', color: '#94a3b8', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '1.5rem' }}>{topTeams[0].sub}</div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <div>
-              <div style={{ fontSize: '0.6rem', color: '#64748b', letterSpacing: '0.1em', marginBottom: 4 }}>WIN RATE</div>
-              <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.25rem', fontWeight: 800, color: '#f5c518' }}>{topTeams[0].winRate}</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '0.6rem', color: '#64748b', letterSpacing: '0.1em', marginBottom: 4 }}>POINTS</div>
-              <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.25rem', fontWeight: 800, color: '#e2e8f0' }}>{topTeams[0].points}</div>
-            </div>
-          </div>
         </div>
 
         {/* Rank 1 */}
@@ -105,16 +95,6 @@ export default function ProRankings() {
             <div style={{ fontSize: '0.7rem', color: '#ffffff', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '2rem' }}>
               {topTeams[1].sub}
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <div>
-                <div style={{ fontSize: '0.65rem', color: '#94a3b8', letterSpacing: '0.1em', marginBottom: 4 }}>WIN RATE</div>
-                <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.5rem', fontWeight: 800, color: '#ffffff' }}>{topTeams[1].winRate}</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '0.65rem', color: '#94a3b8', letterSpacing: '0.1em', marginBottom: 4 }}>POINTS</div>
-                <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.5rem', fontWeight: 800, color: '#ffffff' }}>{topTeams[1].points}</div>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -126,16 +106,6 @@ export default function ProRankings() {
           </div>
           <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.5rem', fontWeight: 800, color: '#e2e8f0', marginBottom: 2 }}>{topTeams[2].name}</div>
           <div style={{ fontSize: '0.65rem', color: '#94a3b8', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '1.5rem' }}>{topTeams[2].sub}</div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <div>
-              <div style={{ fontSize: '0.6rem', color: '#64748b', letterSpacing: '0.1em', marginBottom: 4 }}>WIN RATE</div>
-              <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.25rem', fontWeight: 800, color: '#4fc3f7' }}>{topTeams[2].winRate}</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '0.6rem', color: '#64748b', letterSpacing: '0.1em', marginBottom: 4 }}>POINTS</div>
-              <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.25rem', fontWeight: 800, color: '#e2e8f0' }}>{topTeams[2].points}</div>
-            </div>
-          </div>
         </div>
 
       </div>
@@ -164,9 +134,6 @@ export default function ProRankings() {
               <th style={{ textAlign: 'left', padding: '1rem', fontSize: '0.65rem', color: '#64748b', letterSpacing: '0.1em', fontWeight: 600 }}>RANK</th>
               <th style={{ textAlign: 'left', padding: '1rem', fontSize: '0.65rem', color: '#64748b', letterSpacing: '0.1em', fontWeight: 600 }}>NAME</th>
               <th style={{ textAlign: 'left', padding: '1rem', fontSize: '0.65rem', color: '#64748b', letterSpacing: '0.1em', fontWeight: 600 }}>REGION</th>
-              <th style={{ textAlign: 'left', padding: '1rem', fontSize: '0.65rem', color: '#64748b', letterSpacing: '0.1em', fontWeight: 600 }}>WIN RATE</th>
-              <th style={{ textAlign: 'left', padding: '1rem', fontSize: '0.65rem', color: '#64748b', letterSpacing: '0.1em', fontWeight: 600 }}>MATCHES</th>
-              <th style={{ textAlign: 'right', padding: '1rem', fontSize: '0.65rem', color: '#64748b', letterSpacing: '0.1em', fontWeight: 600 }}>POINTS</th>
             </tr>
           </thead>
           <tbody>
@@ -183,21 +150,11 @@ export default function ProRankings() {
                   </div>
                 </td>
                 <td style={{ padding: '1.25rem 1rem', fontSize: '0.8rem', color: '#94a3b8' }}>{row.region}</td>
-                <td style={{ padding: '1.25rem 1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div style={{ width: 60, height: 4, background: '#112650', borderRadius: 2, overflow: 'hidden' }}>
-                      <div style={{ width: `${row.winRate}%`, height: '100%', background: '#f5c518' }}></div>
-                    </div>
-                    <span style={{ fontSize: '0.75rem', color: '#e2e8f0', fontWeight: 600 }}>{row.winRate}%</span>
-                  </div>
-                </td>
-                <td style={{ padding: '1.25rem 1rem', fontSize: '0.8rem', color: '#94a3b8' }}>{row.matches}</td>
-                <td style={{ padding: '1.25rem 1rem', textAlign: 'right', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.1rem', fontWeight: 700, color: '#f5c518' }}>{row.points}</td>
               </tr>
             ))}
             {paginatedData.length === 0 && (
               <tr>
-                <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#64748b', fontSize: '0.85rem' }}>No results found for "{searchQuery}"</td>
+                <td colSpan="3" style={{ textAlign: 'center', padding: '2rem', color: '#64748b', fontSize: '0.85rem' }}>No results found for "{searchQuery}"</td>
               </tr>
             )}
           </tbody>

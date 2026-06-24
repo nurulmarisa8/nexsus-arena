@@ -134,13 +134,7 @@ export default function PlayerDashboard() {
         <p style={{ color: '#64748b', fontSize: '0.85rem' }}>{user?.division || 'Vanguard Division'} · Season IV Active</p>
       </div>
 
-      {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem', marginBottom: '1.75rem' }}>
-        <StatCard icon={Trophy} label="Tournament Wins" value={playerStats.tournamentWins} color="#f5c518" />
-        <StatCard icon={Swords} label="Matches Played" value={playerStats.matchesPlayed} color="#4fc3f7" />
-        <StatCard icon={TrendingUp} label="Win Rate" value={playerStats.winRate} color="#69f0ae" sub={playerStats.winRateSub} />
-        <StatCard icon={Star} label="Rating" value={playerStats.rating} color="#e040fb" />
-      </div>
+
 
       {/* Banner if no team */}
       {!hasTeam && (

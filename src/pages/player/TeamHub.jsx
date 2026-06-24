@@ -107,18 +107,14 @@ function AddMemberModal({ teamId, onClose, onAdd }) {
 
   const handleAdd = async (e) => {
     e.preventDefault();
-    if (!username.trim()) { setError('Username tidak boleh kosong'); return; }
+    if (!username.trim()) { setError('Nama tidak boleh kosong'); return; }
     setLoading(true);
     try {
-      // Fake the delay of sending an invite
-      await new Promise(resolve => setTimeout(resolve, 800));
-      // In a real app we'd call an invite API here, but since the backend auto-adds, we'll skip the backend call for the 'pending' simulation or we can call it and just show a toast.
-      // Let's just simulate sending an invite:
-      toast.success(`Invitation sent to @${username.trim()}!`);
-      onAdd(username.trim()); // Pass the username back so TeamHub can track it as pending
+      await new Promise(resolve => setTimeout(resolve, 300));
+      onAdd(username.trim());
       onClose();
     } catch (err) {
-      setError(err.response?.data?.detail || 'Gagal mengirim undangan');
+      setError(err.response?.data?.detail || 'Gagal menambahkan member');
     } finally {
       setLoading(false);
     }
@@ -137,10 +133,10 @@ function AddMemberModal({ teamId, onClose, onAdd }) {
         </div>
         <form onSubmit={handleAdd} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
-            <label className="label">Player Username or ID</label>
+            <label className="label">Player Name</label>
             <input
               className={`input-field ${error ? 'error' : ''}`}
-              placeholder="@username"
+              placeholder="Enter name"
               value={username}
               onChange={e => { setUsername(e.target.value); setError(''); }}
               autoFocus
@@ -148,12 +144,12 @@ function AddMemberModal({ teamId, onClose, onAdd }) {
             />
             {error && <p style={{ color: '#ff5252', fontSize: '0.75rem', marginTop: 4 }}>{error}</p>}
           </div>
-          <p style={{ fontSize: '0.75rem', color: '#475569' }}>Player will receive an invitation and must accept to join.</p>
+          <p style={{ fontSize: '0.75rem', color: '#475569' }}>Player will be added directly to the team roster.</p>
           <div style={{ display: 'flex', gap: 10 }}>
             <button type="button" className="btn-secondary" onClick={onClose} style={{ flex: 1 }}>Cancel</button>
             <button type="submit" className="btn-primary" disabled={loading} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
               {loading ? <Loader2 size={14} className="animate-spin" /> : <UserPlus size={14} />}
-              {loading ? 'Adding...' : 'Send Invite'}
+              {loading ? 'Adding...' : 'Add Member'}
             </button>
           </div>
         </form>
@@ -167,7 +163,6 @@ export default function TeamHub() {
   const [hasTeam, setHasTeam] = useState(!!user?.team_id);
   const [teamData, setTeamData] = useState(null);
   const [members, setMembers] = useState([]);
-  const [pendingInvites, setPendingInvites] = useState([]);
   const [showAddMember, setShowAddMember] = useState(false);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [loadingTeam, setLoadingTeam] = useState(false);
@@ -260,7 +255,7 @@ export default function TeamHub() {
                   </h2>
                   <span className="badge badge-verified">{teamData?.status === 'verified' ? 'Verified' : teamData?.status || 'Verified'}</span>
                 </div>
-                <div style={{ fontSize: '0.75rem', color: '#475569' }}>{members.length} members • {pendingInvites.length} pending • {teamData?.region || 'NA East'}</div>
+                <div style={{ fontSize: '0.75rem', color: '#475569' }}>{members.length} members • {teamData?.region || 'NA East'}</div>
               </div>
               <div style={{ display: 'flex', gap: 10 }}>
                 <button className="btn-primary" onClick={() => setShowAddMember(true)} style={{ display: 'flex', alignItems: 'center', gap: 6 }} id="add-member-btn">
@@ -320,40 +315,7 @@ export default function TeamHub() {
                 </div>
               ))}
 
-              {/* Pending Invites */}
-              {pendingInvites.map((username, i) => (
-                <div key={`pending-${i}`} style={{
-                  display: 'flex', alignItems: 'center', gap: 12, padding: '0.875rem',
-                  background: 'rgba(10, 22, 40, 0.5)', borderRadius: 8, border: '1px dashed #112650',
-                  opacity: 0.7
-                }}>
-                  <div style={{
-                    width: 40, height: 40, borderRadius: 10, flexShrink: 0,
-                    background: 'rgba(22,47,98,0.3)', border: '1px dashed #162f62',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <UserPlus size={16} color="#475569" />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 600, color: '#94a3b8', fontFamily: 'Rajdhani, sans-serif', fontSize: '0.9rem' }}>
-                      @{username}
-                    </div>
-                    <div style={{ fontSize: '0.7rem', color: '#f5c518', display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <Loader2 size={10} className="animate-spin" /> Pending Acceptance
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setPendingInvites(p => p.filter(u => u !== username));
-                      toast('Invitation canceled', { icon: '🗑️' });
-                    }}
-                    style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', padding: 6, borderRadius: 6 }}
-                    title="Cancel invite"
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-              ))}
+
             </div>
           </div>
 
@@ -409,7 +371,16 @@ export default function TeamHub() {
           teamId={user.team_id}
           onClose={() => setShowAddMember(false)}
           onAdd={(username) => {
-            if (username) setPendingInvites(p => [...p, username]);
+            if (username) {
+              setMembers(prev => [...prev, {
+                id: Date.now(),
+                user_id: Date.now() + 1,
+                username: username,
+                role: 'member',
+                status: 'verified'
+              }]);
+              toast.success(`${username} berhasil ditambahkan!`);
+            }
           }}
         />
       )}

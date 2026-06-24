@@ -56,7 +56,6 @@ export const matchesAPI = {
   list: (params) => API.get('/api/matches', { params }),
   create: (data) => API.post('/api/matches', data),
   submitScore: (id, data) => API.patch(`/api/matches/${id}/score`, data),
-  live: () => API.get('/api/matches/live'),
 };
 
 export const usersAPI = {

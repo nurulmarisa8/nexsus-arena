@@ -155,15 +155,6 @@ export default function PlayerSettings() {
             </h2>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {/* 2FA */}
-              <div style={{ background: '#060d1f', border: '1px solid #112650', padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ color: '#e2e8f0', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>Two-Factor Authentication</div>
-                  <div style={{ color: '#64748b', fontSize: '0.75rem' }}>Protect your account with an extra layer of security.</div>
-                </div>
-                <button onClick={() => toast.success('2FA Setup Instructions Sent!')} style={{ background: 'transparent', border: '1px solid #f5c518', color: '#f5c518', padding: '0.5rem 1rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer' }}>ENABLE 2FA</button>
-              </div>
-
               {/* Password */}
               <div style={{ background: '#060d1f', border: '1px solid #112650', padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
@@ -171,15 +162,6 @@ export default function PlayerSettings() {
                   <div style={{ color: '#64748b', fontSize: '0.75rem' }}>Last changed 45 days ago.</div>
                 </div>
                 <button onClick={() => toast('Password reset link sent to email', { icon: '📧' })} style={{ background: 'transparent', border: '1px solid #162f62', color: '#94a3b8', padding: '0.5rem 1rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer' }}>CHANGE</button>
-              </div>
-
-              {/* Sessions */}
-              <div style={{ background: '#060d1f', border: '1px solid #112650', padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ color: '#e2e8f0', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>Active Sessions</div>
-                  <div style={{ color: '#64748b', fontSize: '0.75rem' }}>You are currently logged in on 3 devices.</div>
-                </div>
-                <button onClick={() => toast.success('All other sessions logged out')} style={{ background: 'transparent', border: '1px solid #162f62', color: '#94a3b8', padding: '0.5rem 1rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer' }}>LOGOUT ALL</button>
               </div>
             </div>
           </div>
@@ -195,37 +177,9 @@ export default function PlayerSettings() {
 
         </div>
 
-        {/* Right Column */}
-        <div style={{ background: '#0a1628', border: '1px solid #162f62', padding: '2rem' }}>
-          <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#ffffff', fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem', fontFamily: 'Rajdhani, sans-serif' }}>
-            <Bell size={20} color="#f5c518" />
-            Notifications
-          </h2>
-
-          <p style={{ color: '#94a3b8', fontSize: '0.8rem', marginBottom: '2rem', borderLeft: '2px solid #f5c518', paddingLeft: '1rem', lineHeight: 1.5 }}>
-            Select which arena events trigger a system alert.
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '3rem' }}>
-            {[
-              { key: 'tournamentStarts', label: 'Tournament Starts' },
-              { key: 'newChallenge', label: 'New Challenge Received' },
-              { key: 'liveMatchAlerts', label: 'Live Match Alerts' },
-              { key: 'walletTransactions', label: 'Wallet Transactions' },
-              { key: 'promoOffers', label: 'Promotional Offers' }
-            ].map(item => (
-              <div key={item.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ color: '#e2e8f0', fontSize: '0.85rem' }}>{item.label}</span>
-                <div 
-                  onClick={() => toggleNotif(item.key)}
-                  style={{ width: 36, height: 20, background: notifs[item.key] ? '#f5c518' : '#162f62', borderRadius: 10, position: 'relative', cursor: 'pointer' }}
-                >
-                  <div style={{ width: 14, height: 14, background: '#ffffff', borderRadius: '50%', position: 'absolute', top: 3, left: notifs[item.key] ? 19 : 3, transition: 'left 0.2s' }} />
-                </div>
-              </div>
-            ))}
-          </div>
-
+        {/* Right Column - Removed Notifications */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          {/* Email Digest */}
           <div style={{ background: '#060d1f', border: '1px solid #112650', padding: '1.5rem', textAlign: 'center' }}>
             <Mail size={24} color="#64748b" style={{ margin: '0 auto 0.75rem auto' }} />
             <div style={{ color: '#e2e8f0', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>Email Digest</div>
