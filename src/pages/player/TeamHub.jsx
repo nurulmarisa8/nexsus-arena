@@ -77,7 +77,6 @@ function CreateTeamForm({ onCreated }) {
               src={form.logoUrl} 
               alt="logo preview" 
               style={{ width: 48, height: 48, borderRadius: 8, objectFit: 'cover', border: '1px solid #162f62', backgroundColor: '#060d1f' }} 
-              onError={e => { e.target.src = 'https://via.placeholder.com/48/060d1f/475569?text=Logo'; }} 
             />
             <div>
               <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: '#e2e8f0' }}>{form.name || 'Team Name'}</div>
@@ -110,8 +109,8 @@ function AddMemberModal({ teamId, onClose, onAdd }) {
     if (!username.trim()) { setError('Nama tidak boleh kosong'); return; }
     setLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      onAdd(username.trim());
+      const res = await teamsAPI.addMember(teamId, username.trim());
+      onAdd(res.data);
       onClose();
     } catch (err) {
       setError(err.response?.data?.detail || 'Gagal menambahkan member');
@@ -370,16 +369,10 @@ export default function TeamHub() {
         <AddMemberModal
           teamId={user.team_id}
           onClose={() => setShowAddMember(false)}
-          onAdd={(username) => {
-            if (username) {
-              setMembers(prev => [...prev, {
-                id: Date.now(),
-                user_id: Date.now() + 1,
-                username: username,
-                role: 'member',
-                status: 'verified'
-              }]);
-              toast.success(`${username} berhasil ditambahkan!`);
+          onAdd={(memberData) => {
+            if (memberData) {
+              setMembers(prev => [...prev, memberData]);
+              toast.success(`${memberData.username} berhasil ditambahkan!`);
             }
           }}
         />

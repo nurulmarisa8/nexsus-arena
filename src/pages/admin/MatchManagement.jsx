@@ -304,7 +304,11 @@ export default function MatchManagement() {
   useEffect(() => { fetchMatches(); }, [statusFilter]);
 
   const handleMatchCreated = (newMatch) => {
-    setMatches(prev => [newMatch, ...prev]);
+    const normalizedMatch = {
+      ...newMatch,
+      status: newMatch.status === 'pending' ? 'upcoming' : newMatch.status,
+    };
+    setMatches(prev => [normalizedMatch, ...prev]);
   };
 
   const handleScoreUpdated = (updatedMatch) => {

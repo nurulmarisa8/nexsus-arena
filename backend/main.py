@@ -404,7 +404,7 @@ def _build_tournament_response(t: models.Tournament, db: Session) -> schemas.Tou
 
 @app.get("/api/tournaments", response_model=List[schemas.TournamentResponse], tags=["Tournaments"])
 def get_tournaments(db: Session = Depends(get_db)):
-    tournaments = db.query(models.Tournament).all()
+    tournaments = db.query(models.Tournament).order_by(models.Tournament.id.desc()).all()
     return [_build_tournament_response(t, db) for t in tournaments]
 
 
@@ -807,8 +807,41 @@ def delete_server(
 
 
 # ======================================================================
-#  DASHBOARD STATS ENDPOINTS
-# ======================================================================
+@app.patch("/api/auth/me", response_model=schemas.UserResponse, tags=["Auth"])
+def update_me(
+    payload: schemas.UserUpdateProfile,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    if payload.name:
+        current_user.name = payload.name
+    if payload.email:
+        current_user.email = payload.email
+    if payload.password:
+        current_user.hashed_password = get_password_hash(payload.password)
+    
+    db.commit()
+    db.refresh(current_user)
+
+    team_name = None
+    if current_user.team_id:
+        team = db.query(models.Team).filter(models.Team.id == current_user.team_id).first()
+        if team:
+            team_name = team.name
+
+    return schemas.UserResponse(
+        id=current_user.id,
+        name=current_user.name,
+        email=current_user.email,
+        role=current_user.role,
+        status=current_user.status,
+        region=current_user.region,
+        team_id=current_user.team_id,
+        team_name=team_name,
+    )
+
+
+# --- DASHBOARD & GENERAL ---
 
 
 @app.get("/api/stats/admin", tags=["Stats"])

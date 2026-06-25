@@ -65,10 +65,7 @@ export default function PlayerDashboard() {
             const matchData = Array.isArray(matchesRes.data) ? matchesRes.data : (matchesRes.data.matches || matchesRes.data.data || []);
             // Filter by user's team if backend doesn't
             const myMatches = matchData.filter(m => 
-              m.team1_name === user?.teamName || 
-              m.team2_name === user?.teamName || 
-              m.team1_name === user?.team_name || 
-              m.team2_name === user?.team_name
+              (user?.team_id && (m.team1_id === user.team_id || m.team2_id === user.team_id))
             );
             
             // If none matched exact name, fallback to taking first 3 for demo, but realistically it should be empty if no matches

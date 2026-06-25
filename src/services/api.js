@@ -31,6 +31,7 @@ export const authAPI = {
   login: (email, password) => API.post('/api/auth/login', { email, password }),
   register: (data) => API.post('/api/auth/register', data),
   me: () => API.get('/api/auth/me'),
+  updateProfile: (data) => API.patch('/api/auth/me', data),
 };
 
 export const teamsAPI = {

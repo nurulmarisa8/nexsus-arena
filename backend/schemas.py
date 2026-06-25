@@ -41,6 +41,12 @@ class UserUpdate(BaseModel):
     role: Optional[str] = None
 
 
+class UserUpdateProfile(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
+    password: Optional[str] = None
+
+
 # --- GAME SCHEMAS ---
 class GameBase(BaseModel):
     name: str

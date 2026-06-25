@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, Shield, Bell, Mail } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { authAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
 export default function PlayerSettings() {
@@ -12,6 +13,7 @@ export default function PlayerSettings() {
     displayName: '',
     email: '',
     bio: '',
+    newPassword: '',
   });
 
   const [notifs, setNotifs] = useState({
@@ -37,15 +39,34 @@ export default function PlayerSettings() {
     }
   }, [user]);
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    // Persist changes in AuthContext (and localStorage)
-    updateUser({ 
-      ...form, 
-      name: form.username, // keep name synced 
-      settings: { notifs } 
-    });
-    toast.success('Profile updated successfully!');
+    try {
+      const payload = {
+        name: form.username,
+        email: form.email,
+      };
+      if (form.newPassword) {
+        if (form.newPassword.length < 6) {
+          toast.error('Password minimal 6 karakter');
+          return;
+        }
+        payload.password = form.newPassword;
+      }
+      const res = await authAPI.updateProfile(payload);
+      
+      // Update local context
+      updateUser({ 
+        ...form, 
+        name: res.data.name, 
+        email: res.data.email,
+        settings: { notifs } 
+      });
+      toast.success('Profile updated successfully!');
+      setForm(p => ({ ...p, newPassword: '' }));
+    } catch (err) {
+      toast.error('Failed to update profile');
+    }
   };
 
   const handleDiscard = () => {
@@ -155,13 +176,21 @@ export default function PlayerSettings() {
             </h2>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {/* Password */}
-              <div style={{ background: '#060d1f', border: '1px solid #112650', padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
+              <div style={{ background: '#060d1f', border: '1px solid #112650', padding: '1.25rem' }}>
+                <div style={{ marginBottom: '1rem' }}>
                   <div style={{ color: '#e2e8f0', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>Update Password</div>
-                  <div style={{ color: '#64748b', fontSize: '0.75rem' }}>Last changed 45 days ago.</div>
+                  <div style={{ color: '#64748b', fontSize: '0.75rem' }}>Change your password here. Leave blank to keep current password.</div>
                 </div>
-                <button onClick={() => toast('Password reset link sent to email', { icon: '📧' })} style={{ background: 'transparent', border: '1px solid #162f62', color: '#94a3b8', padding: '0.5rem 1rem', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer' }}>CHANGE</button>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.65rem', color: '#94a3b8', letterSpacing: '0.1em', marginBottom: '0.5rem', textTransform: 'uppercase' }}>NEW PASSWORD</label>
+                  <input 
+                    type="password" 
+                    value={form.newPassword}
+                    onChange={e => setForm(p => ({ ...p, newPassword: e.target.value }))}
+                    style={{ width: '100%', background: '#0a1628', border: '1px solid #162f62', color: '#e2e8f0', padding: '0.75rem 1rem', fontSize: '0.85rem' }} 
+                    placeholder="Enter new password"
+                  />
+                </div>
               </div>
             </div>
           </div>

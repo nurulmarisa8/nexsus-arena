@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { Save, Shield, Bell, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { authAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
 export default function AdminSettings() {
   const { user } = useAuth();
 
   const [form, setForm] = useState({
-    platformName: 'NEXUS ARENA',
-    supportEmail: 'support@nexusarena.com',
+    platformName: user?.name || 'NEXUS ARENA',
+    supportEmail: user?.email || 'support@nexusarena.com',
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
@@ -36,8 +37,14 @@ export default function AdminSettings() {
 
     setSaving(true);
     try {
-      // Simulate save (in a real app, call PATCH /api/auth/me or similar)
-      await new Promise(r => setTimeout(r, 600));
+      const payload = {
+        name: form.platformName,
+        email: form.supportEmail,
+      };
+      if (form.newPassword) {
+        payload.password = form.newPassword;
+      }
+      await authAPI.updateProfile(payload);
       toast.success('Settings saved successfully!');
       setForm(p => ({ ...p, currentPassword: '', newPassword: '', confirmPassword: '' }));
     } catch {
