@@ -10,11 +10,8 @@ export default function PlayerSettings() {
   // Local state for the form, initialized from the context
   const [form, setForm] = useState({
     username: '',
-    displayName: '',
     email: '',
     bio: '',
-    currentPassword: '',
-    newPassword: '',
   });
 
   const [notifs, setNotifs] = useState({
@@ -30,7 +27,6 @@ export default function PlayerSettings() {
     if (user) {
       setForm({
         username: user.name || '',
-        displayName: user.displayName || user.name || '',
         email: user.email || '',
         bio: user.bio || '',
       });
@@ -47,13 +43,6 @@ export default function PlayerSettings() {
         name: form.username,
         email: form.email,
       };
-      if (form.newPassword) {
-        if (form.newPassword.length < 6) {
-          toast.error('Password minimal 6 karakter');
-          return;
-        }
-        payload.password = form.newPassword;
-      }
       const res = await authAPI.updateProfile(payload);
       
       // Update local context
@@ -125,22 +114,13 @@ export default function PlayerSettings() {
               </h2>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
                   <div style={{ borderBottom: '1px dashed #162f62', paddingBottom: '1rem' }}>
                     <label style={{ display: 'block', fontSize: '0.65rem', color: '#94a3b8', letterSpacing: '0.1em', marginBottom: '0.5rem', textTransform: 'uppercase' }}>GAMERTAG</label>
                     <input 
                       type="text" 
                       value={form.username}
                       onChange={e => setForm(p => ({ ...p, username: e.target.value }))}
-                      style={{ width: '100%', background: '#060d1f', border: '1px solid #162f62', color: '#e2e8f0', padding: '0.75rem 1rem', fontSize: '0.85rem' }} 
-                    />
-                  </div>
-                  <div style={{ borderBottom: '1px dashed #162f62', paddingBottom: '1rem' }}>
-                    <label style={{ display: 'block', fontSize: '0.65rem', color: '#94a3b8', letterSpacing: '0.1em', marginBottom: '0.5rem', textTransform: 'uppercase' }}>DISPLAY NAME</label>
-                    <input 
-                      type="text" 
-                      value={form.displayName}
-                      onChange={e => setForm(p => ({ ...p, displayName: e.target.value }))}
                       style={{ width: '100%', background: '#060d1f', border: '1px solid #162f62', color: '#e2e8f0', padding: '0.75rem 1rem', fontSize: '0.85rem' }} 
                     />
                   </div>
@@ -164,45 +144,6 @@ export default function PlayerSettings() {
                     onChange={e => setForm(p => ({ ...p, bio: e.target.value }))}
                     style={{ width: '100%', background: '#060d1f', border: '1px solid #162f62', color: '#94a3b8', padding: '0.75rem 1rem', fontSize: '0.85rem', resize: 'none', lineHeight: 1.6 }} 
                   />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Security & Access */}
-          <div style={{ background: '#0a1628', border: '1px solid #162f62', padding: '2rem' }}>
-            <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#ffffff', fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem', fontFamily: 'Rajdhani, sans-serif' }}>
-              <Shield size={20} color="#f5c518" />
-              Security & Access
-            </h2>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div style={{ background: '#060d1f', border: '1px solid #112650', padding: '1.25rem' }}>
-                <div style={{ marginBottom: '1rem' }}>
-                  <div style={{ color: '#e2e8f0', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>Update Password</div>
-                  <div style={{ color: '#64748b', fontSize: '0.75rem' }}>Change your password here. Leave blank to keep current password.</div>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.65rem', color: '#94a3b8', letterSpacing: '0.1em', marginBottom: '0.5rem', textTransform: 'uppercase' }}>CURRENT PASSWORD</label>
-                    <input 
-                      type="password" 
-                      value={form.currentPassword}
-                      onChange={e => setForm(p => ({ ...p, currentPassword: e.target.value }))}
-                      style={{ width: '100%', background: '#0a1628', border: '1px solid #162f62', color: '#e2e8f0', padding: '0.75rem 1rem', fontSize: '0.85rem' }} 
-                      placeholder="Enter current password"
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.65rem', color: '#94a3b8', letterSpacing: '0.1em', marginBottom: '0.5rem', textTransform: 'uppercase' }}>NEW PASSWORD</label>
-                    <input 
-                      type="password" 
-                      value={form.newPassword}
-                      onChange={e => setForm(p => ({ ...p, newPassword: e.target.value }))}
-                      style={{ width: '100%', background: '#0a1628', border: '1px solid #162f62', color: '#e2e8f0', padding: '0.75rem 1rem', fontSize: '0.85rem' }} 
-                      placeholder="Enter new password"
-                    />
-                  </div>
                 </div>
               </div>
             </div>

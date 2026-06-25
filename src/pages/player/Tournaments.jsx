@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Trophy, Filter, Search, ChevronDown, CheckCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
-import { tournamentsAPI } from '../../services/api';
+import { tournamentsAPI, authAPI } from '../../services/api';
 
 const statusConfig = {
   registration_open: { label: 'REGISTRATION OPEN', cls: 'badge-open' },
@@ -41,11 +41,15 @@ export default function Tournaments() {
           description: t.description || '',
           isRegistered: t.is_registered ?? t.isRegistered ?? false,
         })));
-        // Track already-registered tournaments
-        const alreadyRegistered = data
-          .filter(t => t.is_registered || t.isRegistered)
-          .map(t => t.id);
-        setRegistered(alreadyRegistered);
+        // Fetch registered tournaments if user is logged in
+        if (user) {
+          try {
+            const res = await authAPI.myTournaments();
+            setRegistered(res.data || []);
+          } catch (e) {
+            console.error('Failed to fetch registered tournaments', e);
+          }
+        }
       } catch (err) {
         toast.error('Failed to load tournaments');
       } finally {

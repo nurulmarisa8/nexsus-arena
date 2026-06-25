@@ -10,7 +10,6 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const [savePassword, setSavePassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -133,26 +132,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Save Password Checkbox */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '-0.5rem' }}>
-              <input 
-                type="checkbox" 
-                id="save-password" 
-                checked={savePassword}
-                onChange={(e) => setSavePassword(e.target.checked)}
-                style={{
-                  accentColor: '#f5c518',
-                  width: '14px',
-                  height: '14px',
-                  cursor: 'pointer',
-                  background: '#0a1628',
-                  border: '1px solid #162f62'
-                }} 
-              />
-              <label htmlFor="save-password" style={{ fontSize: '0.75rem', color: '#64748b', cursor: 'pointer' }}>
-                Save Password
-              </label>
-            </div>
 
             {error && (
               <div style={{
@@ -185,10 +164,7 @@ export default function LoginPage() {
               Register Account
             </Link>
           </p>
-          <div style={{ display: 'flex', gap: '1rem', fontSize: '0.65rem', color: '#475569', letterSpacing: '0.1em' }}>
-            <Link to="#" style={{ color: 'inherit', textDecoration: 'none' }}>TERMS</Link>
-            <Link to="#" style={{ color: 'inherit', textDecoration: 'none' }}>PRIVACY</Link>
-          </div>
+
         </div>
 
         {/* Development Quick Login Options (Hidden in production mockup, but kept for usability) */}

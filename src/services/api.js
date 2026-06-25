@@ -32,6 +32,7 @@ export const authAPI = {
   register: (data) => API.post('/api/auth/register', data),
   me: () => API.get('/api/auth/me'),
   updateProfile: (data) => API.patch('/api/auth/me', data),
+  myTournaments: () => API.get('/api/auth/me/tournaments'),
 };
 
 export const teamsAPI = {

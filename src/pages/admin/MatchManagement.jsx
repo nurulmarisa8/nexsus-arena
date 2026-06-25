@@ -358,7 +358,7 @@ export default function MatchManagement() {
             </button>
             {filterOpen && (
               <div style={{ position: 'absolute', top: '110%', right: 0, background: '#0d1f3c', border: '1px solid #162f62', borderRadius: 4, zIndex: 100, minWidth: 160 }}>
-                {['', 'upcoming', 'live', 'in_progress', 'finished'].map(s => (
+                {['', 'upcoming', 'live', 'finished'].map(s => (
                   <button key={s} onClick={() => { setStatusFilter(s); setFilterOpen(false); }}
                     style={{ display: 'block', width: '100%', padding: '0.65rem 1rem', background: statusFilter === s ? 'rgba(245,197,24,0.1)' : 'transparent', border: 'none', color: statusFilter === s ? '#f5c518' : '#94a3b8', textAlign: 'left', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 600 }}>
                     {s === '' ? 'All Matches' : s.replace('_', ' ').toUpperCase()}

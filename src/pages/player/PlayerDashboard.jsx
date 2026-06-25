@@ -223,7 +223,7 @@ export default function PlayerDashboard() {
                       {m.result ? m.result.toUpperCase() : 'FIN'}
                     </div>
                   )}
-                  {m.status === 'upcoming' && (
+                  {(m.status === 'upcoming' || m.status === 'pending') && (
                     <div style={{ width: 36, height: 36, borderRadius: 8, flexShrink: 0, background: 'rgba(245,197,24,0.1)', border: '1px solid rgba(245,197,24,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Calendar size={16} color="#f5c518" />
                     </div>
@@ -240,8 +240,8 @@ export default function PlayerDashboard() {
                     </div>
                     <div style={{ fontSize: '0.72rem', color: '#475569', marginTop: 2 }}>{m.schedule}</div>
                   </div>
-                  <span className={`badge ${m.status === 'upcoming' ? 'badge-upcoming' : m.status === 'in_progress' ? 'badge-live' : 'badge-finished'}`}>
-                    {m.status === 'upcoming' ? 'UPCOMING' : m.status === 'in_progress' ? 'IN PROGRESS' : 'FINISHED'}
+                  <span className={`badge ${(m.status === 'upcoming' || m.status === 'pending') ? 'badge-upcoming' : m.status === 'in_progress' ? 'badge-live' : 'badge-finished'}`}>
+                    {(m.status === 'upcoming' || m.status === 'pending') ? 'UPCOMING' : m.status === 'in_progress' ? 'IN PROGRESS' : 'FINISHED'}
                   </span>
                 </div>
               ))}
