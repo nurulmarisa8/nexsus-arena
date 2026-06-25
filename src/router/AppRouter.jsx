@@ -25,7 +25,6 @@ import Tournaments from '../pages/player/Tournaments';
 import Brackets from '../pages/player/Brackets';
 import PlayerSettings from '../pages/player/PlayerSettings';
 import MatchScoring from '../pages/player/MatchScoring';
-import ProRankings from '../pages/player/ProRankings';
 
 function CatchAll() {
   const { isAuthenticated, role } = useAuth();
@@ -60,7 +59,6 @@ export default function AppRouter() {
           <Route path="/player/brackets" element={<Brackets />} />
           <Route path="/player/settings" element={<PlayerSettings />} />
           <Route path="/player/scoring" element={<MatchScoring />} />
-          <Route path="/player/rankings" element={<ProRankings />} />
         </Route>
       </Route>  
 

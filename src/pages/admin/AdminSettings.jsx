@@ -233,22 +233,6 @@ export default function AdminSettings() {
             </div>
           </div>
 
-          <div className="card" style={{ padding: '1.25rem', background: 'rgba(255,82,82,0.05)', border: '1px solid rgba(255,82,82,0.2)' }}>
-            <h3 style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: '#ff5252', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
-              Danger Zone
-            </h3>
-            <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '1rem' }}>
-              Actions here can cause permanent data loss. Proceed with caution.
-            </p>
-            <button
-              className="btn-secondary"
-              style={{ width: '100%', borderColor: '#ff5252', color: '#ff5252' }}
-              onClick={() => toast.error('Action disabled for safety.')}
-              id="purge-logs-btn"
-            >
-              Purge System Logs
-            </button>
-          </div>
         </div>
       </div>
     </div>

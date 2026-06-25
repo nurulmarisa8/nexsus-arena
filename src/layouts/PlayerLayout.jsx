@@ -16,7 +16,6 @@ const navItems = [
 
 const topNav = [
   { label: 'TOURNAMENTS', to: '/player/tournaments' },
-  { label: 'PRO RANKINGS', to: '/player/rankings' },
 ];
 
 export default function PlayerLayout() {
