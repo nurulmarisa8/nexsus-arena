@@ -341,29 +341,6 @@ export default function TeamHub() {
               ))}
             </div>
 
-            {/* Danger Zone */}
-            <div className="card" style={{ padding: '1.25rem', border: '1px solid rgba(255,82,82,0.2)' }}>
-              <h3 style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: '#ff5252', fontSize: '0.85rem', marginBottom: '0.75rem', letterSpacing: '0.06em' }}>
-                DANGER ZONE
-              </h3>
-              <p style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '1rem' }}>
-                Leaving the team will remove you from the roster permanently.
-              </p>
-              {!showLeaveConfirm ? (
-                <button className="btn-danger" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={() => setShowLeaveConfirm(true)} id="leave-team-btn">
-                  <LogOut size={14} />
-                  Leave Team
-                </button>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <p style={{ fontSize: '0.75rem', color: '#ff5252', fontWeight: 600 }}>Are you sure?</p>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button className="btn-secondary" onClick={() => setShowLeaveConfirm(false)} style={{ flex: 1, fontSize: '0.75rem' }}>Cancel</button>
-                    <button className="btn-danger" onClick={handleLeaveTeam} style={{ flex: 1, fontSize: '0.75rem' }} id="confirm-leave-btn">Confirm</button>
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       )}

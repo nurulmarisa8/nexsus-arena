@@ -13,6 +13,7 @@ export default function PlayerSettings() {
     displayName: '',
     email: '',
     bio: '',
+    currentPassword: '',
     newPassword: '',
   });
 
@@ -181,15 +182,27 @@ export default function PlayerSettings() {
                   <div style={{ color: '#e2e8f0', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.25rem' }}>Update Password</div>
                   <div style={{ color: '#64748b', fontSize: '0.75rem' }}>Change your password here. Leave blank to keep current password.</div>
                 </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.65rem', color: '#94a3b8', letterSpacing: '0.1em', marginBottom: '0.5rem', textTransform: 'uppercase' }}>NEW PASSWORD</label>
-                  <input 
-                    type="password" 
-                    value={form.newPassword}
-                    onChange={e => setForm(p => ({ ...p, newPassword: e.target.value }))}
-                    style={{ width: '100%', background: '#0a1628', border: '1px solid #162f62', color: '#e2e8f0', padding: '0.75rem 1rem', fontSize: '0.85rem' }} 
-                    placeholder="Enter new password"
-                  />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.65rem', color: '#94a3b8', letterSpacing: '0.1em', marginBottom: '0.5rem', textTransform: 'uppercase' }}>CURRENT PASSWORD</label>
+                    <input 
+                      type="password" 
+                      value={form.currentPassword}
+                      onChange={e => setForm(p => ({ ...p, currentPassword: e.target.value }))}
+                      style={{ width: '100%', background: '#0a1628', border: '1px solid #162f62', color: '#e2e8f0', padding: '0.75rem 1rem', fontSize: '0.85rem' }} 
+                      placeholder="Enter current password"
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.65rem', color: '#94a3b8', letterSpacing: '0.1em', marginBottom: '0.5rem', textTransform: 'uppercase' }}>NEW PASSWORD</label>
+                    <input 
+                      type="password" 
+                      value={form.newPassword}
+                      onChange={e => setForm(p => ({ ...p, newPassword: e.target.value }))}
+                      style={{ width: '100%', background: '#0a1628', border: '1px solid #162f62', color: '#e2e8f0', padding: '0.75rem 1rem', fontSize: '0.85rem' }} 
+                      placeholder="Enter new password"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

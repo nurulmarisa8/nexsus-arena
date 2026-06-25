@@ -10,7 +10,6 @@ import toast from 'react-hot-toast';
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', to: '/player/dashboard' },
   { icon: Users, label: 'Team Hub', to: '/player/team' },
-  { icon: Trophy, label: 'Brackets', to: '/player/brackets' },
   { icon: CalendarDays, label: 'Match Scoring', to: '/player/scoring' },
 ];
 

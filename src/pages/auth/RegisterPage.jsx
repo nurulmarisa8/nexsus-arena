@@ -173,23 +173,7 @@ export default function RegisterPage() {
                 {errors.password && <p style={{ color: '#ff5252', fontSize: '0.75rem', marginTop: 4 }}>{errors.password}</p>}
               </div>
 
-              {/* Team Name Field */}
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.375rem' }}>
-                  <label className="label" style={{ margin: 0, color: '#e2e8f0' }}>TEAM NAME</label>
-                  <span style={{ fontSize: '0.65rem', color: '#475569', letterSpacing: '0.05em', fontWeight: 600 }}>OPTIONAL</span>
-                </div>
-                <div className="input-icon-wrapper">
-                  <Users />
-                  <input 
-                    className="input-field" 
-                    type="text" 
-                    placeholder="Joining an existing clan?" 
-                    value={form.teamName} 
-                    onChange={update('teamName')} 
-                  />
-                </div>
-              </div>
+
 
               {errors.global && (
                 <div style={{ background: 'rgba(255,82,82,0.1)', border: '1px solid rgba(255,82,82,0.3)', borderRadius: 4, padding: '0.5rem 0.75rem', color: '#ff5252', fontSize: '0.8rem' }}>

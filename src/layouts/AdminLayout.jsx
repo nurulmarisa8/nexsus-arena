@@ -10,7 +10,7 @@ const navItems = [
   { icon: LayoutDashboard, label: 'Overview', to: '/admin/dashboard' },
   { icon: Users, label: 'Participants', to: '/admin/users' },
   { icon: Trophy, label: 'Tournaments', to: '/admin/tournaments' },
-  { icon: CalendarDays, label: 'Brackets & Matches', to: '/admin/matches' },
+  { icon: CalendarDays, label: 'Matches', to: '/admin/matches' },
 ];
 
 const topNav = [];
@@ -81,23 +81,7 @@ export default function AdminLayout() {
 
         {/* Settings (Bottom) */}
         <div style={{ padding: '1rem', borderTop: '1px solid #162f62', display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <NavLink
-            to="/admin/settings"
-            end
-            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-            style={({ isActive }) => ({
-              padding: '0.75rem 1rem',
-              borderRadius: '0',
-              borderLeft: isActive ? '3px solid #f5c518' : '3px solid transparent',
-              backgroundColor: isActive ? 'rgba(245, 197, 24, 0.1)' : 'transparent',
-              color: isActive ? '#f5c518' : '#94a3b8',
-              display: 'flex', alignItems: 'center', gap: 12,
-              textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600,
-            })}
-          >
-            <Settings size={18} />
-            <span>Settings</span>
-          </NavLink>
+
           <button
             onClick={logout}
             style={{
