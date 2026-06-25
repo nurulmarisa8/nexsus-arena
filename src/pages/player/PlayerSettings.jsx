@@ -195,15 +195,6 @@ export default function PlayerSettings() {
             </div>
           </div>
 
-          {/* Danger Zone */}
-          <div style={{ background: 'rgba(225, 29, 72, 0.05)', border: '1px solid rgba(225, 29, 72, 0.3)', padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ color: '#e2e8f0', fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.25rem' }}>Danger Zone</div>
-              <div style={{ color: '#94a3b8', fontSize: '0.75rem' }}>Deleting your account is permanent and will wipe all tournament history and rankings.</div>
-            </div>
-            <button onClick={() => toast.error('Account deletion requires contacting support')} style={{ background: 'transparent', border: '1px solid #e11d48', color: '#e11d48', padding: '0.6rem 1rem', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer' }}>DELETE ACCOUNT</button>
-          </div>
-
         </div>
 
 
