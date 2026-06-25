@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 export default function RegisterPage() {
   const { register, loading } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ username: '', email: '', password: '', teamName: '' });
+  const [form, setForm] = useState({ username: '', email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
 
