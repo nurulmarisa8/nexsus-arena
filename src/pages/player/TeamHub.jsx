@@ -324,6 +324,10 @@ export default function TeamHub() {
               <h3 style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: '#e2e8f0', fontSize: '0.9rem', marginBottom: '1rem' }}>
                 Team Stats
               </h3>
+              {/* ── Statistik Tim ──────────────────────────────────────────────
+                  wins   → dihitung dari tabel matches (winner_id = team.id)
+                  members → jumlah anggota dari tabel team_members
+                  region/status → dari tabel teams                              */}
               {[
                 { label: 'Total Wins', value: String(teamData?.wins || 0) },
                 { label: 'Members', value: String(members.length) },

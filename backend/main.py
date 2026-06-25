@@ -21,7 +21,7 @@ from auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
 )
 
-# Auto-create all database tables
+# Buat semua tabel otomatis saat server pertama kali dijalankan
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -30,7 +30,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Configure CORS so the React frontend can communicate with the backend
+# CORS — izinkan React frontend (port 3000) untuk akses API backend (port 8000)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -844,40 +844,44 @@ def update_me(
 # --- DASHBOARD & GENERAL ---
 
 
+# Statistik Admin Dashboard — angka yang tampil di 3 kartu atas halaman admin
 @app.get("/api/stats/admin", tags=["Stats"])
 def admin_stats(
     db: Session = Depends(get_db),
     admin: models.User = Depends(require_admin),
 ):
-    total_games = db.query(models.Game).count()
+    # Jumlah match yang sedang berjalan (status 'live' atau 'in_progress')
     active_matches = (
         db.query(models.Match)
         .filter(or_(models.Match.status == "live", models.Match.status == "in_progress"))
         .count()
     )
+    # Total tim yang terdaftar di platform
     registered_teams = db.query(models.Team).count()
+    # Total user dengan status 'verified' (akun aktif)
     active_users = db.query(models.User).filter(models.User.status == "verified").count()
 
     return {
-        "total_games": total_games,
-        "active_matches": active_matches,
-        "registered_teams": registered_teams,
-        "active_users": active_users,
+        "active_matches": active_matches,      # → kartu "ACTIVE MATCHES"
+        "registered_teams": registered_teams,  # → kartu "REGISTERED TEAMS"
+        "active_users": active_users,           # → kartu "ACTIVE USERS"
     }
 
 
+# Statistik Player Dashboard — angka di kartu stat (Tournament Wins, Matches, Win Rate, Rating)
 @app.get("/api/stats/player/{user_id}", tags=["Stats"])
 def player_stats(user_id: int, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Find all teams the user is/was a member of
+    # Ambil semua tim yang pernah diikuti user
     team_ids = [
         tm.team_id
         for tm in db.query(models.TeamMember).filter(models.TeamMember.user_id == user_id).all()
     ]
 
+    # Jika belum pernah bergabung tim, kembalikan nilai default
     if not team_ids:
         return {
             "tournament_wins": 0,
@@ -886,6 +890,7 @@ def player_stats(user_id: int, db: Session = Depends(get_db)):
             "rating": 1000,
         }
 
+    # Total match selesai dimana tim user ikut bertanding
     matches_played = (
         db.query(models.Match)
         .filter(
@@ -898,6 +903,7 @@ def player_stats(user_id: int, db: Session = Depends(get_db)):
         .count()
     )
 
+    # Total match yang dimenangkan tim user
     matches_won = (
         db.query(models.Match)
         .filter(
@@ -907,12 +913,13 @@ def player_stats(user_id: int, db: Session = Depends(get_db)):
         .count()
     )
 
+    # Win Rate = (menang / total match) × 100
     win_rate = (matches_won / matches_played * 100) if matches_played > 0 else 0.0
 
-    # Simple rating calculation
+    # Rating = 1000 (base) + (menang × 50) - (kalah × 25)
     rating = 1000 + (matches_won * 50) - ((matches_played - matches_won) * 25)
 
-    # Count tournament wins (tournaments where all matches are finished and the team won the last match)
+    # Hitung kemenangan turnamen: tim user menang di match terakhir turnamen
     tournament_wins = 0
     tournaments_with_wins = (
         db.query(models.Match.tournament_id)
@@ -934,8 +941,9 @@ def player_stats(user_id: int, db: Session = Depends(get_db)):
             tournament_wins += 1
 
     return {
-        "tournament_wins": tournament_wins,
-        "matches_played": matches_played,
-        "win_rate": round(win_rate, 1),
-        "rating": max(rating, 0),
+        "tournament_wins": tournament_wins,  # → kartu "Tournament Wins"
+        "matches_played": matches_played,    # → kartu "Matches Played"
+        "win_rate": round(win_rate, 1),      # → kartu "Win Rate" (dalam %)
+        "rating": max(rating, 0),            # → kartu "Rating" (min 0)
     }
+

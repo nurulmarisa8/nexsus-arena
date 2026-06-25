@@ -4,12 +4,15 @@ import { Search } from 'lucide-react';
 export default function ProRankings() {
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
+
+  // ── Data Podium Top 3 (data statis untuk tampilan ranking global) ────────────
   const topTeams = [
     { rank: 2, name: 'VORTEX KINGS', sub: 'PREMIER LEAGUE', winRate: '78.4%', points: '12,450', img: 'https://api.dicebear.com/7.x/bottts/svg?seed=vortex' },
     { rank: 1, name: 'ZEPHYR ELITE', sub: 'WORLD CHAMPIONS', winRate: '84.2%', points: '15,820', img: 'https://api.dicebear.com/7.x/bottts/svg?seed=zephyr' },
     { rank: 3, name: 'NEON TITANS', sub: 'CHALLENGER TIER', winRate: '72.1%', points: '11,200', img: 'https://api.dicebear.com/7.x/bottts/svg?seed=neon' },
   ];
 
+  // ── Data Leaderboard (rank 4 ke bawah, data statis untuk demo) ──────────────
   const leaderboard = [
     { rank: '04', tag: 'CY', name: 'Cyber Ghosts', player: 'H. TAKAHASHI', region: 'Asia-Pacific', winRate: 68.5, matches: '1,284', points: '9,840' },
     { rank: '05', tag: 'RS', name: 'Rising Suns', player: 'K. JØRGENSEN', region: 'Europe', winRate: 65.2, matches: '942', points: '8,210' },
@@ -20,11 +23,13 @@ export default function ProRankings() {
     { rank: '10', tag: 'VN', name: 'Venom', player: 'A. COSTA', region: 'South America', winRate: 55.0, matches: '1,420', points: '6,500' },
   ];
 
+  // Filter leaderboard berdasarkan pencarian nama tim atau player
   const filteredLeaderboard = leaderboard.filter(t => 
     t.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     t.player.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
+  // Pagination: tampilkan 4 item per halaman
   const itemsPerPage = 4;
   const totalPages = Math.ceil(filteredLeaderboard.length / itemsPerPage) || 1;
   const paginatedData = filteredLeaderboard.slice((page - 1) * itemsPerPage, page * itemsPerPage);

@@ -11,16 +11,17 @@ export default function AdminDashboard() {
   const [servers, setServers] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Ambil semua data dashboard sekaligus: statistik, daftar match, dan jadwal server
   const fetchAll = async () => {
     setLoading(true);
     try {
       const [statsRes, matchesRes, serversRes] = await Promise.all([
-        statsAPI.admin(),
-        matchesAPI.list(),
-        serversAPI.list(),
+        statsAPI.admin(),      // GET /api/stats/admin → angka di 3 kartu atas
+        matchesAPI.list(),     // GET /api/matches     → tabel recent matches
+        serversAPI.list(),     // GET /api/servers     → jadwal server
       ]);
       setStats(statsRes.data);
-      // Sort by id desc to get most recent
+      // Ambil 8 match terbaru, diurutkan dari yang paling baru
       const allMatches = Array.isArray(matchesRes.data) ? matchesRes.data : [];
       setRecentMatches(allMatches.slice(-8).reverse());
       setServers(Array.isArray(serversRes.data) ? serversRes.data.slice(0, 4) : []);
@@ -95,9 +96,10 @@ export default function AdminDashboard() {
           <Loader2 size={32} className="animate-spin" style={{ color: '#f5c518' }} />
         </div>
       ) : (
+        // ── 3 Kartu Statistik Atas — data dari GET /api/stats/admin ───────────
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
 
-          {/* Card 2 - Active Matches */}
+          {/* Kartu 1: Jumlah match yang statusnya 'live' atau 'in_progress' */}
           <div style={{ background: '#0a1628', border: '1px solid #162f62', padding: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
               <div style={{ fontSize: '0.65rem', color: '#94a3b8', letterSpacing: '0.1em', textTransform: 'uppercase' }}>ACTIVE MATCHES</div>
@@ -106,16 +108,17 @@ export default function AdminDashboard() {
                 <span style={{ fontSize: '0.6rem', color: '#ff5252', fontWeight: 700, letterSpacing: '0.05em' }}>LIVE</span>
               </div>
             </div>
+            {/* Angka dari: stats.active_matches */}
             <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2.5rem', fontWeight: 800, color: '#ffffff', lineHeight: 1 }}>{fmt(stats?.active_matches)}</div>
           </div>
 
-          {/* Card 3 - Registered Teams */}
+          {/* Kartu 2: Total tim yang terdaftar di database — stats.registered_teams */}
           <div style={{ background: '#0a1628', border: '1px solid #162f62', padding: '1.5rem' }}>
             <div style={{ fontSize: '0.65rem', color: '#94a3b8', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.75rem' }}>REGISTERED TEAMS</div>
             <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2.5rem', fontWeight: 800, color: '#ffffff', lineHeight: 1 }}>{fmt(stats?.registered_teams)}</div>
           </div>
 
-          {/* Card 4 - Active Users */}
+          {/* Kartu 3: Total user status 'verified' — stats.active_users */}
           <div style={{ background: '#0a1628', border: '1px solid #162f62', padding: '1.5rem' }}>
             <div style={{ fontSize: '0.65rem', color: '#94a3b8', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.75rem' }}>ACTIVE USERS</div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>

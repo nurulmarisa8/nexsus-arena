@@ -39,41 +39,43 @@ export default function PlayerDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch player stats
+        // ── Statistik Player (kartu angka atas) ─────────────────────────────
+        // Sumber: GET /api/stats/player/{user_id}
         if (user?.id) {
           try {
             const statsRes = await statsAPI.player(user.id);
             const d = statsRes.data;
             setPlayerStats({
-              tournamentWins: String(d.tournament_wins ?? d.tournamentWins ?? 0),
-              matchesPlayed: String(d.matches_played ?? d.matchesPlayed ?? 0),
-              winRate: d.win_rate ?? d.winRate ?? '0%',
-              winRateSub: d.win_rate_change ?? d.winRateChange ?? null,
-              rating: String(d.rating ?? 0),
+              tournamentWins: String(d.tournament_wins ?? 0),  // Jumlah turnamen yang dimenangkan
+              matchesPlayed: String(d.matches_played ?? 0),    // Total match yang pernah dimainkan
+              winRate: d.win_rate ?? '0%',                      // Persentase kemenangan
+              winRateSub: d.win_rate_change ?? null,
+              rating: String(d.rating ?? 0),                   // Rating ELO player
             });
           } catch (err) {
-            // Stats may not be available, use defaults
+            // Stats belum tersedia, gunakan nilai default
           }
         }
 
-        // Fetch recent matches
+        // ── Recent Matches (tabel match terbaru tim) ─────────────────────────
+        // Sumber: GET /api/matches, difilter berdasarkan team_id user
         try {
           if (!hasTeam) {
             setRecentMatches([]);
           } else {
             const matchesRes = await matchesAPI.list();
             const matchData = Array.isArray(matchesRes.data) ? matchesRes.data : (matchesRes.data.matches || matchesRes.data.data || []);
-            // Filter by user's team if backend doesn't
+            // Filter hanya match yang melibatkan tim user
             const myMatches = matchData.filter(m => 
               (user?.team_id && (m.team1_id === user.team_id || m.team2_id === user.team_id))
             );
             
-            // If none matched exact name, fallback to taking first 3 for demo, but realistically it should be empty if no matches
             const displayMatches = myMatches.length > 0 ? myMatches : [];
             
             setRecentMatches(displayMatches.slice(0, 3).map(m => {
               const isTeam1 = m.team1_name === user?.teamName || m.team1_name === user?.team_name;
               let res = m.result;
+              // Tentukan hasil: win/loss/draw berdasarkan skor
               if (!res && m.status === 'finished') {
                 if (m.score_team1 != null && m.score_team2 != null) {
                   if (m.score_team1 > m.score_team2) res = isTeam1 ? 'win' : 'loss';
@@ -105,10 +107,11 @@ export default function PlayerDashboard() {
             }));
           }
         } catch (err) {
-          // Matches may not be available
+          // Match belum tersedia
         }
 
-        // Fetch upcoming tournaments
+        // ── Upcoming Tournaments (sidebar kanan) ─────────────────────────────
+        // Sumber: GET /api/tournaments, difilter status 'upcoming'
         try {
           const tourRes = await tournamentsAPI.list();
           const tourData = Array.isArray(tourRes.data) ? tourRes.data : (tourRes.data.tournaments || tourRes.data.data || []);
@@ -136,7 +139,7 @@ export default function PlayerDashboard() {
             };
           }));
         } catch (err) {
-          // Tournaments may not be available
+          // Turnamen belum tersedia
         }
       } finally {
         setLoading(false);
