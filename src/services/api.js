@@ -40,7 +40,7 @@ export const teamsAPI = {
   get: (id) => API.get(`/api/teams/${id}`),
   // Backend uses query param ?username=... not a JSON body
   addMember: (id, username) => API.post(`/api/teams/${id}/members`, null, { params: { username } }),
-  removeMember: (teamId, userId) => API.delete(`/api/teams/${teamId}/members/${userId}`),
+  removeMember: (teamId, memberId) => API.delete(`/api/teams/${teamId}/members/${memberId}`),
   leave: (id) => API.post(`/api/teams/${id}/leave`),
   updateStatus: (id, status) => API.patch(`/api/teams/${id}/status`, { status }),
 };

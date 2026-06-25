@@ -177,12 +177,12 @@ def create_game(
 def _build_team_response(team: models.Team, db: Session) -> schemas.TeamResponse:
     members_out: List[schemas.TeamMemberResponse] = []
     for m in team.members:
-        user = db.query(models.User).filter(models.User.id == m.user_id).first()
+        name = m.user.name if m.user else m.guest_name
         members_out.append(
             schemas.TeamMemberResponse(
                 id=m.id,
                 user_id=m.user_id,
-                username=user.name if user else "Unknown",
+                username=name or "Unknown",
                 role=m.role,
                 status=m.status,
                 join_date=m.join_date,
@@ -272,37 +272,47 @@ def add_team_member(
         raise HTTPException(status_code=403, detail="Only admin or team captain can add members")
 
     user = db.query(models.User).filter(models.User.name == username).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
 
-    existing = (
-        db.query(models.TeamMember)
-        .filter(models.TeamMember.team_id == team_id, models.TeamMember.user_id == user.id)
-        .first()
-    )
+    # Cek apakah member dengan nama tersebut sudah ada di tim
+    existing = None
+    if user:
+        existing = db.query(models.TeamMember).filter(
+            models.TeamMember.team_id == team_id, 
+            models.TeamMember.user_id == user.id
+        ).first()
+    else:
+        existing = db.query(models.TeamMember).filter(
+            models.TeamMember.team_id == team_id, 
+            models.TeamMember.guest_name == username
+        ).first()
+
     if existing:
-        raise HTTPException(status_code=400, detail="User is already a member of this team")
+        raise HTTPException(status_code=400, detail="User/Name is already a member of this team")
 
-    member = models.TeamMember(team_id=team_id, user_id=user.id, role="member")
+    if user:
+        member = models.TeamMember(team_id=team_id, user_id=user.id, role="member")
+        user.team_id = team_id
+    else:
+        member = models.TeamMember(team_id=team_id, guest_name=username, role="member")
+
     db.add(member)
-    user.team_id = team_id
     db.commit()
     db.refresh(member)
 
     return schemas.TeamMemberResponse(
         id=member.id,
         user_id=member.user_id,
-        username=user.name,
+        username=username,
         role=member.role,
         status=member.status,
         join_date=member.join_date,
     )
 
 
-@app.delete("/api/teams/{team_id}/members/{user_id}", tags=["Teams"])
+@app.delete("/api/teams/{team_id}/members/{member_id}", tags=["Teams"])
 def remove_team_member(
     team_id: int,
-    user_id: int,
+    member_id: int,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
@@ -315,15 +325,16 @@ def remove_team_member(
 
     member = (
         db.query(models.TeamMember)
-        .filter(models.TeamMember.team_id == team_id, models.TeamMember.user_id == user_id)
+        .filter(models.TeamMember.team_id == team_id, models.TeamMember.id == member_id)
         .first()
     )
     if not member:
         raise HTTPException(status_code=404, detail="Member not found")
 
-    user = db.query(models.User).filter(models.User.id == user_id).first()
-    if user:
-        user.team_id = None
+    if member.user_id:
+        user = db.query(models.User).filter(models.User.id == member.user_id).first()
+        if user:
+            user.team_id = None
 
     db.delete(member)
     db.commit()

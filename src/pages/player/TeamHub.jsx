@@ -209,10 +209,10 @@ export default function TeamHub() {
     }
   };
 
-  const handleRemoveMember = async (memberId, userId) => {
+  const handleRemoveMember = async (memberId) => {
     try {
-      await teamsAPI.removeMember(user.team_id, userId);
-      setMembers(prev => prev.filter(m => m.user_id !== userId));
+      await teamsAPI.removeMember(user.team_id, memberId);
+      setMembers(prev => prev.filter(m => m.id !== memberId));
       toast.success('Member removed from team.');
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Gagal menghapus member');
@@ -303,10 +303,10 @@ export default function TeamHub() {
                   {/* Remove button (not for captain) */}
                   {member.role !== 'captain' && (
                     <button
-                      onClick={() => handleRemoveMember(member.id, member.user_id)}
+                      onClick={() => handleRemoveMember(member.id)}
                       style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', padding: 6, borderRadius: 6, display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}
                       title="Remove member"
-                      id={`remove-member-${member.user_id}`}
+                      id={`remove-member-${member.id}`}
                     >
                       <X size={14} />
                     </button>

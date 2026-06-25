@@ -79,7 +79,7 @@ class TeamCreate(BaseModel):
 
 class TeamMemberResponse(BaseModel):
     id: int
-    user_id: int
+    user_id: Optional[int] = None
     username: str
     role: str
     status: str

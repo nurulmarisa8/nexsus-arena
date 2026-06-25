@@ -98,11 +98,16 @@ class Team(Base):
 # ── TABEL: team_members ────────────────────────────────────────────────────────
 # Relasi many-to-many antara user dan tim (roster anggota)
 class TeamMember(Base):
+    """
+    Tabel anggota tim (team_members)
+    Relasi many-to-many antara users dan teams.
+    """
     __tablename__ = "team_members"
 
     id = Column(Integer, primary_key=True, index=True)
     team_id = Column(Integer, ForeignKey("teams.id"))
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True) # nullable supaya bisa tambah member tanpa akun
+    guest_name = Column(String(255), nullable=True) # nama member jika tidak punya akun
     role = Column(String(255), default="member")        # 'captain' atau 'member'
     status = Column(String(255), default="active")
     join_date = Column(DateTime, default=datetime.utcnow)
